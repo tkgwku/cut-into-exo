@@ -1,1 +1,0 @@
-const JAVA_QUERY = 'r_frame_rate=0/0&nb_frames=80768&height=1080&filename=C:\\Users\\fine_diary\\Videos\\動画化\\8kwin_SLROnly.mp4&size=7955472900&duration=1723.169000&width=1920'

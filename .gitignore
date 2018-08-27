@@ -1,0 +1,14 @@
+.settings
+.metadata
+.recommenders
+RemoteSystemsTempFiles
+aviutltool_project.txt
+.classpath
+.project
+pom.xml
+target
+*.log
+test
+data.js
+ffmpeg.exe
+ffplay.exe

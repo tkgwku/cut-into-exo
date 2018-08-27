@@ -82,9 +82,9 @@
 						if (s[1] === '0/0'){
 							r_frame_rate = 'VFR';
 						} else {
-							var a = s[1].split('%2F');
+							var a = s[1].split('/');
 							if (a.length == 2){
-								r_frame_rate = parseInt(a[0], 10) / parseInt(a[1], 10);
+								r_frame_rate = parseInt(a[1], 10) / parseInt(a[0], 10);
 							}
 						}
 					} else if (s[0] === 'nb_frames') {
@@ -137,18 +137,18 @@
             }
         }
 
-        function durationString(ms){
-            if (ms < 1000*60){
-                var a = Math.round( ms * 1000 ) / 1000;
+        function durationString(s){
+            if (s < 60){
+                var a = Math.floor( s * 100 ) / 100;
                 return a + " s";
-            } else if (ms < 1000*60*60) {
-                var a = Math.round(ms/60000);
-                var b = Math.round((ms-a*60000)/1000);
+            } else if (s < 60*60) {
+                var a = Math.floor(s/60);
+                var b = Math.floor(s-a*60);
                 return a + " m " + b + " s";
             } else {
-                var a = Math.round(ms/3600000);
-                var b = Math.round((ms-a*3600000)/60000);
-                var c = Math.round((ms-a*3600000-b*60000)/1000);
+                var a = Math.floor(s/60*60);
+                var b = Math.floor((s-a*60*60)/60);
+                var c = Math.floor(s-a*60*60-b*60);
                 return a + " h " + b + " m " + c + " s";
             }
         }

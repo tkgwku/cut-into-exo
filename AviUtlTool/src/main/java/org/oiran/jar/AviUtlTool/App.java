@@ -85,7 +85,7 @@ class VideoDropTargetAdapter extends DropTargetAdapter{
                     if (f.getName().endsWith(".mp4")) {
                         Mp4 mp4 = new Mp4(f);
                         if (mp4.loadMetadata()) {
-                            File ft = new File(getClass().getResource("/html/tn").getPath());
+                            //File ft = new File(getClass().getResource("/html/tn").getPath());
                             //if (mp4.createThumbnails(ft)) {
                             Desktop desktop = Desktop.getDesktop();
                             File fp = new File(getClass().getResource("/html/index.html").getPath());

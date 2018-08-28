@@ -14,6 +14,9 @@
         <h3 style="margin: 1em 0 1em 0;">動画をカット編集</h3>
         <video id="video" controls=""></video>
         <div id="cutsbar"></div>
+        <div class="progress mt-1">
+			<div class="progress-bar progress-bar-striped" style="width: 15.51234%"></div>
+		</div>
         <h4 style="margin: 1em 0">プロジェクトの設定</h4>
         <div class="form-group">
             <div class="form-inline">
@@ -45,48 +48,49 @@
         <h4 style="margin: 2em 0 1em 0">動画のプロパティ</h4>
         <table id="infotable" style="margin-top: 1em"></table>
 
-        <footer style="margin-top: 3em">
+        <footer style="margin-top: 3em;font-size: .8em">
             <p>HTML5, Javascript, LocalStorageを使用しています。一部のブラウザでは動作しない可能性があります。<br>&copy; 2018 fine_diary, all rights reserved. Powered by <a href="https://jquery.com/" target="_blank">jQuery</a>, <a href="https://getbootstrap.com/" target="_blank">bootstrap</a></p>
         </footer>
     </div>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script type="text/javascript" src="data.js"></script>
+    <script type="text/javascript" src="components.js"></script>
     <script type="text/javascript">
-        var project_width    = 1280;
-        var project_height    = 720;
+        var project_width      = 1280;
+        var project_height     = 720;
         var project_fps        = 60;
-        var audio_rate        = 44100;
+        var project_audio_rate = 44100;
+
+		var keybinds = [
+		    new Keybind ("vpp",     32, false, false, false, videoPlayPause             ),
+		    new Keybind ("sctasoe", 13, false, false, false, setCurrentTimeAsStartOrEnd ),
+		    new Keybind ("ie",      83, true,  false, false, issueExo                   )
+		];
+
+        var scene_array = [];
 
         var filename, nb_frames, width, height, r_frame_rate, duration, size;
 
         function init(){
-            var l1 = localStorage.getItem('pwidth');
-            if (l1)  $('#pwidth').val(l1);
-            var l2 = localStorage.getItem('pheight');
+            // load local storage data
+            var l1 = localStorage.getItem('krhr_pwidth');
+            if (l1) $('#pwidth') .val(l1);
+            var l2 = localStorage.getItem('krhr_pheight');
             if (l2) $('#pheight').val(l2);
-            var l3 = localStorage.getItem('pfps');
-            if (l3) $('#pfps').val(l3);
-            var l4 = localStorage.getItem('selfps');
-            if (l4) $('#selfps').val(l4);
-            var l5 = localStorage.getItem('selsize');
+            var l3 = localStorage.getItem('krhr_pfps');
+            if (l3) $('#pfps')   .val(l3);
+            var l4 = localStorage.getItem('krhr_selfps');
+            if (l4) $('#selfps') .val(l4);
+            var l5 = localStorage.getItem('krhr_selsize');
             if (l5) $('#selsize').val(l5);
 
+			// load video metadata
             var m = JAVA_QUERY.replace(/&apos;/g, "'").match(/[^?&]+=[^?&]*/g);
-
             if (m){
                 for (var i = 0; i < m.length; i++) {
                     var s = m[i].split('=');
                     if (s[0] === 'filename'){
                         filename = s[1];
-                    } else if (s[0] === 'r_frame_rate') {
-                        if (s[1] === '0/0'){
-                            r_frame_rate = 'VFR';
-                        } else {
-                            var a = s[1].split('/');
-                            if (a.length == 2){
-                                r_frame_rate = parseInt(a[1], 10) / parseInt(a[0], 10);
-                            }
-                        }
                     } else if (s[0] === 'nb_frames') {
                         nb_frames = parseInt(s[1], 10);
                     } else if (s[0] === 'width') {
@@ -97,10 +101,20 @@
                         duration = parseInt(s[1], 10);
                     } else if (s[0] === 'size'){
                         size = parseInt(s[1], 10);
+                    } else if (s[0] === 'r_frame_rate') {
+                        if (s[1] === '0/0'){
+                            r_frame_rate = 'VFR';
+                        } else {
+                            var a = s[1].split('/');
+                            if (a.length == 2){
+                                r_frame_rate = parseInt(a[1], 10) / parseInt(a[0], 10);
+                            }
+                        }
                     }
                 }
             }
 
+            // set video source
             if (filename) {
                 $('#video').append($('<source>', {
                     'src': unescape(filename)
@@ -125,34 +139,7 @@
             $('#infotable').append(table);
         }
 
-        function sizeString(byte){
-            if (byte < 100){
-                return byte + " byte";
-            } else if (byte < 100000){
-                var a = Math.round( byte * 1000 / 1024 ) / 1000;
-                return a + " KB";
-            } else {
-                var a = Math.round( (byte * 1000 / 1024) / 1024 ) / 1000;
-                return a + " GB";
-            }
-        }
-
-        function durationString(s){
-            if (s < 60){
-                var a = Math.floor( s * 100 ) / 100;
-                return a + " s";
-            } else if (s < 60*60) {
-                var a = Math.floor(s/60);
-                var b = Math.floor(s-a*60);
-                return a + " m " + b + " s";
-            } else {
-                var a = Math.floor(s/60*60);
-                var b = Math.floor((s-a*60*60)/60);
-                var c = Math.floor(s-a*60*60-b*60);
-                return a + " h " + b + " m " + c + " s";
-            }
-        }
-
+        // return table row jQuery element
         function tr(a, b){
             var tr = $('<tr>');
             var td1 = $('<td>', {text:a});
@@ -179,7 +166,7 @@
             }
             $('#pwidth').on('click');
             $('#pheight').on('click');
-            localStorage.setItem('selsize', $('#selsize').val());
+            localStorage.setItem('krhr_selsize', $('#selsize').val());
         });
         $('#selfps').on('change', function(){
             var val = $('#selsize').val();
@@ -191,132 +178,46 @@
                 $('#pfps').val(29,.97);
             }
             $('#pfps').on('click');
-            localStorage.setItem('selfps', $('#selfps').val());
+            localStorage.setItem('krhr_selfps', $('#selfps').val());
         });
-
         $('#pwidth').on('change', function(){
-            localStorage.setItem('pwidth', $('#pwidth').val());
+            localStorage.setItem('krhr_pwidth', $('#pwidth').val());
         });
         $('#pheight').on('change', function(){
-            localStorage.setItem('pheight', $('#pheight').val());
+            localStorage.setItem('krhr_pheight', $('#pheight').val());
         });
         $('#pfps').on('change', function(){
-            localStorage.setItem('pfps', $('#pfps').val());
+            localStorage.setItem('krhr_pfps', $('#pfps').val());
         });
-
-        var cuts_example = [
-            {
-                "pos_start"   : 1,
-                "pos_end"     : 204,
-                "video_start" : 1
-            },
-            {
-                "pos_start"   : 205,
-                "pos_end"     : 80812,
-                "video_start" : 300
-            }
-        ];
-
-        function issueExo(){
-            var cuts = parsePositions();
-            var mgn = 100;
-            var exofilename = 'unnamed.exo';
-            var abspath = getVideoURIAsAbsPath();
-            var total_length = 0;
-            var a = [];
-            var v = [];
-
-            project_width = parseInt($('#pwidth').val(), 10);
-            project_height = parseInt($('#pheight').val(), 10);
-            project_fps = parseInt($('#pfps').val(), 10);
-
-            for (var i = 0; i < cuts.length; i++) {
-                var cut = cuts[i];
-
-                total_length += cut["pos_end"] - cut["pos_start"] + 1;
-
-                v.push('['+i+']');
-                v.push('start='+cut["pos_start"]);
-                v.push('end='+cut["pos_end"]);
-                v.push('layer=1');
-                v.push('group=1');
-                v.push('overlay=1');
-                v.push('camera=0');
-
-                v.push('['+i+'.0]');
-                v.push('_name=動画ファイル');
-                v.push('再生位置='+cut["video_start"]);
-                v.push('再生速度=100.0');
-                v.push('ループ再生=0');
-                v.push('アルファチャンネルを読み込む=0');
-                v.push('file='+abspath);
-
-                v.push('['+i+'.1]');
-                v.push('_name=標準描画');
-                v.push('X=0.0');
-                v.push('Y=0.0');
-                v.push('Z=0.0');
-                v.push('拡大率='+mgn);
-                v.push('透明度=0.0');
-                v.push('回転=0.00');
-                v.push('blend=0');
-
-                a.push('['+(cuts.length+i)+']');
-                a.push('start='+cut["pos_start"]);
-                a.push('end='+cut["pos_end"]);
-                a.push('layer=2');
-                a.push('group=1');
-                a.push('overlay=1');
-                a.push('audio=1');
-
-                a.push('['+(cuts.length+i)+'.0]');
-                a.push('_name=音声ファイル');
-                a.push('再生位置='+cut["video_start"]);
-                a.push('再生速度='+mgn);
-                a.push('ループ再生=0');
-                a.push('動画ファイルと連携=1');
-                a.push('file='+abspath);
-
-                a.push('['+(cuts.length+i)+'.1]');
-                a.push('_name=標準再生');
-                a.push('音量=100.0');
-                a.push('左右=0.0');
-            }
-
-            var o = [];
-            o.push('[exedit]');
-            o.push('width='+preference["project_width"]);
-            o.push('height='+preference["project_height"]);
-            o.push('rate='+preference["frame_rate"]);
-            o.push('scale=1');
-            o.push('length='+total_length);
-            o.push('audio_rate='+preference["audio_rate"]);
-            o.push('audio_ch=2');
-
-            var exotext = o.join('\n') + '\n' + v.join('\n') + '\n' + a.join('\n');
-
-            //saveas(exofilename, exotext)
-        }
-
-        function getVideoURIAsAbsPath(){
-            if (filepath.match(/^file:\/\/\//)){
-                return filepath.replace(/^file:\/\/\//, "").replace(/\//g, "\\");
-            } else {
-                return filepath;
-            }
-        }
-
-        function getVideoURIAsFilePrtclPath(){
-            if (!filepath.match(/^file:\/\/\//)){
-                return "file:///"+filepath.replace(/\\/g, "/");
-            } else {
-                return filepath;
-            }
-        }
 
         $('#video').on('click', function(e){
             videoPlayPause();
         });
+
+        function issueExo(){
+            var cut_array = [];
+            var extension_rate = [];
+            var exo_content = exo(filename, cut_array, project_width, project_height, project_fps, project_audio_rate, extension_rate);
+            promptWinExplorer('unnamed.exo', exo_content);
+        }
+
+        function promptWinExplorer(fileanme, content){
+            var file = new Blob([content], {type: 'text/plane'});
+            if (window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveOrOpenBlob(file, filename);
+            } else {
+                var a = document.createElement('a');
+                var url = URL.createObjectURL(file);
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(function() {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);  
+                }, 0); 
+            }
+        }
 
         function videoPlayPause(){
             var v = $('#video').get(0);
@@ -327,74 +228,18 @@
             }
         }
 
-        var positions = [];
-
-        function setCurrentTimeAsStartOrEnd(){
+        function startCut(){
             var currentTime = $('#video').get(0).currentTime;
-            positions.push(currentTime);
+            //
         }
 
-        function parsePositions(){
-            var _cuts = [];
-            var r = positions.length % 2;
-            var frames = 1;
-            for (var i = 0; i < (positions.length-r)/2; i++) {
-                var startframe = Math.round(positions[2*i] * project_fps);
-                var endframe = Math.round(positions[2*i+1] * project_fps);
+        function endCut(){
 
-                var cut = {
-                    "pos_start"   : frames,
-                    "pos_end"     : frames + endframe - startframe,
-                    "video_start" : startframe
-                }
-                _cuts.push(cut);
-
-                frames += endframe - startframe;
-            }
-            if (r === 1){
-                var startframe = Math.round(positions[positions.length-1] * project_fps);
-                var endframe = Math.round($('#video').get(0).duration * project_fps);
-
-                var cut = {
-                    "pos_start"   : frames,
-                    "pos_end"     : frames + endframe - startframe,
-                    "video_start" : startframe
-                }
-                _cuts.push(cut);
-            }
-            return cuts;
         }
 
-        var Keybind = function(id, keycode, ctrl, shift, alt, onkeypress){
-            this.id = id;
-            this.keycode = keycode;
-            this.ctrl = ctrl;
-            this.shift = shift;
-            this.alt = alt;
-            this.onkeypress = onkeypress;
+        function addPositions(){
+
         }
-
-        Keybind.prototype.call = function(){
-            this.onkeypress();
-        };
-
-        Keybind.prototype.iskeypressed = function(event){
-            if (this.keycode !== event.keyCode) return false;
-            if (this.ctrl && !event.ctrlKey) return false;
-            if (this.shift && !event.shiftKey) return false;
-            if (this.alt && !event.altKey) return false;
-            return true;
-        };
-
-        Keybind.prototype.setkeycode = function(keycode){
-            this.keycode = keycode;
-        };
-
-        var keybinds = [
-            new Keybind("vpp", 32, false, false, false, videoPlayPause),
-            new Keybind("sctasoe", 13, false ,false, false, setCurrentTimeAsStartOrEnd),
-            new Keybind("ie", 83, true, false, false, issueExo)
-        ];
 
         $('body').on('keypress', function(e){
             for (var i = 0; i < keybinds.length; i++) {
@@ -406,45 +251,18 @@
         });
 
         /*
-            function download(data, filename, type) {
-                var file = new Blob([data], {type: type});
-                if (window.navigator.msSaveOrOpenBlob) // IE10+
-                    window.navigator.msSaveOrOpenBlob(file, filename);
-                else { // Others
-                    var a = document.createElement("a"),
-                            url = URL.createObjectURL(file);
-                    a.href = url;
-                    a.download = filename;
-                    document.body.appendChild(a);
-                    a.click();
-                    setTimeout(function() {
-                        document.body.removeChild(a);
-                        window.URL.revokeObjectURL(url);  
-                    }, 0); 
-                }
-            }
-
-            https://stackoverflow.com/questions/13405129/javascript-create-and-save-file
-        */
-
-        /*
-            http://aviutl.info/sagyou-hozonn/#exo
-            https://stackoverflow.com/questions/20097853/obtain-the-duration-of-a-mp4-file
-            http://ffmpeg.org/ffprobe.html
-            https://stackoverflow.com/questions/32210057/how-to-read-metadata-from-mp4-using-mp4-js-node-module
-            https://stackoverflow.com/questions/3844430/how-to-get-the-duration-of-a-video-in-python
-        */
-
-        /*
             TODO:
-            - seek bar which can be interacted and show cut position
-            - indicator which pops when hotkey pressed
-            - save-file prompt ( just for windows user )
-            - keybind settings
-            - save / load edit
-            - menu bar
-            - sound volume whole edit
-            - expansion rate settings ( or auto )
+            - 編集のタイムラインバーに目盛り追加・操作可能・右クリックメニュー
+            - ホットキーが押されたときにインジケータ表示
+            - Windows専用Downloadプロンプト
+            - キーバインド設定
+            - 編集内容を一時保存・ロード。exoとして保存
+            - メニューバー
+            - * 音量設定
+            - 拡大率設定 / 自動拡大率設定 ( 画面いっぱいに動画が来るように )
+            - AviUtl exeditのtimelineと同じ要領でカット+右クリで削除
+            - またはホットキーでpositionのみ記録、自動で偶数番ごとのonair/offair判定。
+            - 上２つをモード切替
         */
     </script>
 </body>

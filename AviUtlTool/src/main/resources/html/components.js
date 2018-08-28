@@ -1,10 +1,10 @@
 
 /* class Keybind */
 var Keybind = function(id, keycode, ctrl, shift, alt, onkeypress){
-    this.id        = id;
-    this.keycode   = keycode;
-    this.ctrl      = ctrl;
-    this.shift     = shift;
+    this.id         = id;
+    this.keycode    = keycode;
+    this.ctrl       = ctrl;
+    this.shift      = shift;
     this.alt        = alt;
     this.onkeypress = onkeypress;
 }
@@ -28,21 +28,31 @@ Keybind.prototype.setkeycode = function(keycode){
 
 
 /* class Scene */
-var Scene = function(startSec, endSec, onAir){
-   this.startSec = startSec;
-   this.endSec   = endSec;
-   this.onAir    = onAir;
+var Scene = function(index, startSec, endSec, onAir){
+    this.index    = index;
+    this.startSec = startSec;
+    this.endSec   = endSec;
+    this.onAir    = onAir;
 }
 
 Scene.prototype.lengthSec = function(){
-   return this.endSec - this.startSec;
+    return this.endSec - this.startSec;
 }
 
-Scene.prototype.barElem = function(duration){
+Scene.prototype.barElem = function(duration, bg){
     return $('<div>', {
-        'class': 'progress-bar progress-bar-striped'+(this.onAir?' bg-primary':' bg-secondary'),
-        'style' : 'width='+(this.lengthSec()*100/duration)+'%'
+        'class': 'progress-bar '+(this.onAir ? bg : 'progress-bar-striped bg-secondary'),
+        'style' : 'width:'+(this.lengthSec()*100/duration)+'%',
+        'data-index' : this.index + ''
     });
+}
+
+Scene.prototype.toggle = function(){
+    return new Scene(this.index, this.startSec, this.endSec, !this.onAir);
+}
+
+Scene.prototype.in = function(sec){
+    return this.endSec > sec && sec > this.startSec;
 }
 
 /* class Cut */
@@ -66,13 +76,13 @@ function exo(videoPath, cutArray, projectWidth, projectHeight, projectFps, proje
     for (var i = 0; i < cutArray.length; i++) {
         var cut = cutArray[i];
 
-        totalFrame += cut.lengthFrame;
+        totalFrame += cut.lengthFrame();
 
         v.push('['+i+']'                         );
         v.push('start=' + cut.exeditStartFrame   );
         v.push('end='   + cut.exeditEndFrame     );
         v.push('layer=1'                         );
-        v.push('group=1'                         );
+        v.push('group=' + (i+1)                  );
         v.push('overlay=1'                       );
         v.push('camera=0'                        );
 
@@ -98,17 +108,17 @@ function exo(videoPath, cutArray, projectWidth, projectHeight, projectFps, proje
         a.push('start=' + cut.exeditStartFrame   );
         a.push('end='   + cut.exeditEndFrame     );
         a.push('layer=2'                         );
-        a.push('group=1'                         );
+        a.push('group=' + (i+1)                  );
         a.push('overlay=1'                       );
         a.push('audio=1'                         );
 
         a.push('[' + (cutArray.length+i) + '.0]' );
         a.push('_name=音声ファイル'              );
-        a.push('再生位置=' + cut.videoStartFrame );
+        a.push('再生位置=0.00'                   );
         a.push('再生速度=100.0'                  );
         a.push('ループ再生=0'                    );
         a.push('動画ファイルと連携=1'            );
-        a.push('file='    + videopath            );
+        a.push('file='    + videoPath            );
 
         a.push('[' + (cutArray.length+i) + '.1]' );
         a.push('_name=標準再生'                  );
@@ -119,7 +129,7 @@ function exo(videoPath, cutArray, projectWidth, projectHeight, projectFps, proje
     var o = [];
     o.push('[exedit]'                       );
     o.push('width='      + projectWidth     );
-    o.push('height='     + projectWidth     );
+    o.push('height='     + projectHeight    );
     o.push('rate='       + projectFps       );
     o.push('scale=1'                        );
     o.push('length='     + totalFrame       );

@@ -102,7 +102,7 @@ class VideoDropTargetAdapter extends DropTargetAdapter{
                             }
                             FileWriter fw = new FileWriter(fj);
                             BufferedWriter bw = new BufferedWriter(fw);
-                            bw.write("const JAVA_QUERY = '"+escape(q.substring(1))+"'");
+                            bw.write("const JAVA_QUERY = '"+escape(q.substring(1))+"';");
                             bw.close();
                             desktop.browse(fp.toURI());
                             App.instance.exit();

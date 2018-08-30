@@ -88,9 +88,12 @@ function init(){
         //todo: ls
 
         // init timeline
-        refreshTimeline();
+        $('#timeline2').html('');
+        tinmelineSvgElem();
+        timelineLayerElem()
     } 
 }
+//init end
 
 // return table row jQuery element
 function tr(a, b){
@@ -221,6 +224,7 @@ function cut(){
 const bg = ['bg-1','bg-2','bg-3','bg-4','bg-5','bg-6','bg-7','bg-8'];
 
 function refreshTimeline(){
+    /*
     $('#timeline').html('');
     for (var i = 0; i < scene_array.length; i++) {
         var b = scene_array[i].barElem(duration, bg[i%8]);
@@ -232,6 +236,32 @@ function refreshTimeline(){
             refreshTimeline();
         });
         $('#timeline').append(b);
+    }
+    */
+
+    $('#tl_items').html('');
+
+    var title = filename.match(/([^\\.]+).[^\\.]+$/)[1];
+    for (var i = 0; i < scene_array.length; i++) {
+        var s = scene_array[i].startSec;
+        var e = scene_array[i].endSec;
+        var o = scene_array[i].onAir;
+
+        var scene_width = Math.round(timeline_width * scene_array[i].lengthSec() / duration) + 'px';
+
+        $('#tl_items').append($('<div>',{
+            text: '【動画ファイル】' +title,
+            'data-index': i,
+            'class': 'tl_bar '+(o?'tl_video':'tl_muted'),
+            'width': scene_width,
+            click: function(){
+                var index = parseInt($(this).attr('data-index'), 10);
+                if (!isNaN(index) && 0 <= index && index < scene_array.length){
+                    scene_array[index] = scene_array[index].toggle();
+                }
+                refreshTimeline();
+            }
+        }));
     }
 }
 
@@ -249,19 +279,159 @@ $('body').on('keydown', function(e){
     }
 });
 
+var timeline_width = 10000;//pixel
+var timeline_interval = 60;//second
+
+function tinmelineSvgElem(){
+    var svg_wrapper = $('<div>', {
+        'id': 'tl_ruler',
+        click: function(e){
+            var clientRect = this.getBoundingClientRect();
+            var x = e.pageX - clientRect.left - window.pageXOffset - 16;
+            if (x >= 0 && x < timeline_width){
+                $('#video').get(0).currentTime = duration * x / timeline_width;
+            }
+        }
+    });
+    var times = Math.floor(duration/timeline_interval);
+    var svg_elem = $svg('<svg>', {
+        'xmlns':'http://www.w3.org/2000/svg',
+        'xmlns:xlink':'http://www.w3.org/1999/xlink',
+        'version':'1.1',
+        'width': timeline_width + 332,
+        'height': 48
+    });
+    // 0, 1, 2, ... , n-1, n
+    for (var i = 0; i <= times; i++) {
+        var sec = i * timeline_interval;//0, 10, ..., 10n
+        var line_svg_pos_x = Math.round(sec * timeline_width / duration) + 16;
+        svg_elem.append($svg('<text>', {
+            text: secString(sec),
+            'x': line_svg_pos_x,
+            'y': 30,
+            'text-anchor':'middle',
+            'font-size': '16px'
+        }));
+        svg_elem.append($svg('<line>', {
+            'x1': line_svg_pos_x,
+            'y1': 34,
+            'x2': line_svg_pos_x,
+            'y2': 46,
+            'stroke':'black'
+        }));
+    }
+    svg_elem.append($svg('<line>', {
+        'x1': 16,
+        'y1': 40,
+        'x2': (timeline_width + 16),
+        'y2': 40,
+        'stroke':'black'
+    }));
+    svg_elem.append($svg('<text>', {
+        text: '最後',
+        'x': timeline_width+16,
+        'y': 30,
+        'text-anchor':'middle',
+        'font-size': '16px'
+    }));
+    svg_elem.append($svg('<line>', {
+        'x1': timeline_width+16,
+        'y1': 34,
+        'x2': timeline_width+16,
+        'y2': 46,
+        'stroke':'black'
+    }));
+
+    svg_wrapper.append(svg_elem);
+    $('#timeline2').append(svg_wrapper);
+
+    var seek_stick = $('<div>', {
+        'id': 'tl_stick'
+    });
+
+    seek_stick.css('left', 15);
+
+    var svg_seek = $svg('<svg>', {
+        'xmlns':'http://www.w3.org/2000/svg',
+        'xmlns:xlink':'http://www.w3.org/1999/xlink',
+        'version':'1.1',
+        'width': 2,
+        'height': 144
+    });
+
+    svg_seek.append($svg('<line>', {
+        'x1': 1,
+        'y1': 8,
+        'x2': 1,
+        'y2': 152,
+        'stroke':'#e51616'
+    }));
+
+    seek_stick.append(svg_seek);
+    $('#timeline2').append(seek_stick);
+}
+
+function timelineLayerElem(){
+    var title = filename.match(/([^\\.]+).[^\\.]+$/)[1];
+    var bar = $('<div>', {
+        'id': 'tl_items'
+    });
+    for (var i = 0; i < scene_array.length; i++) {
+        var s = scene_array[i].startSec;
+        var e = scene_array[i].endSec;
+        var o = scene_array[i].onAir;
+
+        var scene_width = Math.round(timeline_width * scene_array[i].lengthSec() / duration) + 'px';
+
+        bar.append($('<div>',{
+            text: '【動画ファイル】' +title,
+            'data-index': i,
+            'class': 'tl_bar '+(o?'tl_video':'tl_muted'),
+            'width': scene_width,
+            click: function(){
+                var index = parseInt($(this).attr('data-index'), 10);
+                if (!isNaN(index) && 0 <= index && index < scene_array.length){
+                    scene_array[index] = scene_array[index].toggle();
+                }
+                refreshTimeline();
+            }
+        }));
+        $('#timeline2').append(bar);
+    }
+}
+
+$('#video').on('timeupdate', function(){
+    var w = Math.round($('#video').get(0).currentTime * (timeline_width + 32) / duration - $('#timeline2').width() / 2);
+    if (w < 0) w = 0;
+    $('#timeline2').scrollLeft(w);
+    $('#tl_stick').css('left', Math.round(15 + ($('#video').get(0).currentTime * timeline_width / duration)));
+});
+//なぜか重い
+
  /*
     TODO:
+    - [done]  Windows専用Downloadプロンプト
+    - [done]  exoとして保存
+    - [done]  AviUtl exeditのtimelineと同じ要領でカット+クリックで削除
+    - [done]　タイムラインをインタラクティブ化
     - 編集のタイムラインバーに目盛り追加・操作可能・右クリックメニュー
     - ホットキーが押されたときにインジケータ表示
-    -   Windows専用Downloadプロンプト
     - キーバインド設定
     - 編集内容を一時保存・ロード
-    -   exoとして保存
     - メニューバー
-    - * 音量設定
-    - 拡大率設定 / 自動拡大率設定 ( 画面いっぱいに動画が来る )
-    -   AviUtl exeditのtimelineと同じ要領でカット+クリックで削除
     - またはホットキーでcut positionのみ記録、自動で偶数番ごとのonair/offair判定。
     - 上２つをモード切替
     - シーンチェンジ / シーンチェンジSEを追加
+    - シークバーを動かしたらload待ちにする ( 重いので )
+    - ビデオ拡大率設定 / 自動拡大率設定 ( 画面いっぱいに動画が来る )
+    - 目盛り追加
+    - 目盛りの拡大率設定
+    - 目盛りの値を動的に調整
+    - タブで項目を表示 または ブロック化してCollapse
+    - 配置設定 ( pos + size ) 画像を用いたわかりやすいGUI
+    - カットされる予定の箇所を再生するときは動画上にOverlay ( 動画上HUD )
+    - 注意書き
+
+    WON'T:
+    - 音量設定
 */

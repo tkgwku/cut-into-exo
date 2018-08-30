@@ -152,6 +152,7 @@ function sizeString(byte){
 }
 
 function durationString(s){
+    s = Math.round(s);
     if (s < 60){
         var a = Math.floor( s * 100 ) / 100;
         return a + " s";
@@ -180,5 +181,31 @@ function pathToFileURI(filePath){
         return "file:///"+filePath.replace(/\\/g, "/");
     } else {
         return filePath;
+    }
+}
+
+function $svg(tag, attr){
+    var m = tag.match(/^<([a-z]+)>$/);
+    if (m) tag = m[1];
+    var e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    var o = Object.keys(attr);
+    for (var i = 0; i < o.length; i++) {
+        if (o[i] == 'text'){
+            e.textContent = attr[o[i]];
+        } else {
+            e.setAttribute(o[i], attr[o[i]]);
+        }
+    }
+    return e;
+}
+
+function secString(s){
+    //s = Math.round(s);
+    if (s < 60){
+        return s + '秒';
+    } else {
+        var m = Math.floor(s/60);
+        var s2 = s - m *60;
+        return m + '分' + (s2===0?'':s2+'秒');
     }
 }

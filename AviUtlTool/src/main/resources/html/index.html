@@ -17,13 +17,29 @@
         .bg-8{background-color: #fff9c4}
         #timeline{cursor: pointer;height: 20px}
         #timeline .progress-bar{cursor: pointer;height: 20px}
+
+        #tl_items{margin:16px;padding: 0;white-space: nowrap;}
+        .tl_bar{display: inline-block;margin:0;padding:0 .3em;color: white;overflow: hidden;white-space: nowrap;cursor: pointer;}
+        .tl_scenechange {background-image: linear-gradient( 90.9deg,  rgba(0,139,50,1) 0.5%, rgba(0,214,32,1) 99.7% );}
+        .tl_video {background-image: radial-gradient( circle farthest-corner at 10% 20%,  rgba(26,178,203,1) 0%, rgba(0,102,161,1) 90.1% );}
+        .tl_muted {background: repeating-linear-gradient(45deg,#606dbc,#606dbc 10px,#465298 10px,#465298 20px);}
+        .tl_audio {background-image: linear-gradient( 68.6deg,  rgba(229,113,87,1) 0.4%, rgba(233,84,127,1) 100.2% );}
+        #timeline2{overflow: scroll;position: relative;top:0;left:0;}
+        #tl_stick{z-index: 10;position: absolute;top: 0;left: 0;}
+        #tl_ruler{cursor:text;}
     </style>
 </head>
 <body onload="init();">
     <div class="container">
         <h3 style="margin: 1em 0 1em 0;">動画をカット編集</h3>
         <video id="video" controls=""></video>
-        <div class="progress mt-1" id="timeline"></div>
+        <!--<div class="progress mt-1" id="timeline"></div>-->
+
+
+        <div id="timeline2" style="height: 160px;margin-top: 1em">
+        </div>
+
+
         <h4 style="margin: 1em 0">プロジェクトの設定</h4>
         <div class="form-group">
             <div class="form-inline">

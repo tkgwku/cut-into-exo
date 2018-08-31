@@ -14,6 +14,8 @@ var scene_array = [];
 
 var filename, nb_frames, width, height, r_frame_rate, duration, size;
 
+var title;
+
 function init(){
     // load local storage data
     var l1 = localStorage.getItem('krhr_pwidth' );
@@ -62,6 +64,10 @@ function init(){
         $('#video').append($('<source>', {
             'src': filename
         }));
+        var m = filename.match(/([^\\.]+.[^\\.]+)$/);
+        if (m && m.length >= 2){
+            title = m[1];
+        }
     }
 
     var table = $('<table>', {'class': 'table'});
@@ -89,8 +95,9 @@ function init(){
 
         // init timeline
         $('#timeline2').html('');
-        tinmelineSvgElem();
-        timelineLayerElem()
+        $('#timeline2').append(tinmelineSvgElem());
+        $('#timeline2').append(timelineSeekElem());
+        $('#timeline2').append(timelineLayerElem());
     } 
 }
 //init end
@@ -240,29 +247,9 @@ function refreshTimeline(){
     */
 
     $('#tl_items').html('');
-
-    var title = filename.match(/([^\\.]+).[^\\.]+$/)[1];
-    for (var i = 0; i < scene_array.length; i++) {
-        var s = scene_array[i].startSec;
-        var e = scene_array[i].endSec;
-        var o = scene_array[i].onAir;
-
-        var scene_width = Math.round(timeline_width * scene_array[i].lengthSec() / duration) + 'px';
-
-        $('#tl_items').append($('<div>',{
-            text: '【動画ファイル】' +title,
-            'data-index': i,
-            'class': 'tl_bar '+(o?'tl_video':'tl_muted'),
-            'width': scene_width,
-            click: function(){
-                var index = parseInt($(this).attr('data-index'), 10);
-                if (!isNaN(index) && 0 <= index && index < scene_array.length){
-                    scene_array[index] = scene_array[index].toggle();
-                }
-                refreshTimeline();
-            }
-        }));
-    }
+    appendTimelineItems($('#tl_items'), 'tl_video', 'tl_muted', '【動画ファイル】{{title}}');
+    $('#tl_items_audio').html('');
+    appendTimelineItems($('#tl_items_audio'), 'tl_audio', 'tl_muted_audio', '【音声ファイル】{{title}}');
 }
 
 function addPosition(){
@@ -343,8 +330,9 @@ function tinmelineSvgElem(){
     }));
 
     svg_wrapper.append(svg_elem);
-    $('#timeline2').append(svg_wrapper);
-
+    return svg_wrapper;
+}
+function timelineSeekElem(){
     var seek_stick = $('<div>', {
         'id': 'tl_stick'
     });
@@ -356,37 +344,46 @@ function tinmelineSvgElem(){
         'xmlns:xlink':'http://www.w3.org/1999/xlink',
         'version':'1.1',
         'width': 2,
-        'height': 144
+        'height': 136
     });
 
     svg_seek.append($svg('<line>', {
         'x1': 1,
         'y1': 8,
         'x2': 1,
-        'y2': 152,
+        'y2': 144,
         'stroke':'#e51616'
     }));
 
     seek_stick.append(svg_seek);
-    $('#timeline2').append(seek_stick);
+    return seek_stick;
 }
 
 function timelineLayerElem(){
-    var title = filename.match(/([^\\.]+).[^\\.]+$/)[1];
+    var wrapper = $('<div>');
     var bar = $('<div>', {
         'id': 'tl_items'
     });
+    appendTimelineItems(bar, 'tl_video', 'tl_muted', '【動画ファイル】{{title}}');
+    var bar2 = $('<div>', {
+        'id': 'tl_items_audio'
+    });
+    appendTimelineItems(bar2, 'tl_audio', 'tl_muted_audio', '【音声ファイル】{{title}}');
+    wrapper.append(bar);
+    wrapper.append(bar2);
+    return wrapper;
+}
+
+function appendTimelineItems(elem, activeClass, muteClass, titleFormat){
     for (var i = 0; i < scene_array.length; i++) {
-        var s = scene_array[i].startSec;
-        var e = scene_array[i].endSec;
         var o = scene_array[i].onAir;
 
         var scene_width = Math.round(timeline_width * scene_array[i].lengthSec() / duration) + 'px';
 
-        bar.append($('<div>',{
-            text: '【動画ファイル】' +title,
+        elem.append($('<div>',{
+            text: titleFormat.replace(/\{\{title\}\}/g, title),
             'data-index': i,
-            'class': 'tl_bar '+(o?'tl_video':'tl_muted'),
+            'class': 'tl_bar '+(o?activeClass:muteClass),
             'width': scene_width,
             click: function(){
                 var index = parseInt($(this).attr('data-index'), 10);
@@ -396,7 +393,6 @@ function timelineLayerElem(){
                 refreshTimeline();
             }
         }));
-        $('#timeline2').append(bar);
     }
 }
 
@@ -408,15 +404,20 @@ $('#video').on('timeupdate', function(){
 });
 //なぜか重い
 
+$('#timeline2').mousewheel(function(event, mov) {
+    $('#timeline2').scrollLeft($('#timeline2').scrollLeft() - mov * 100);
+    return false;   //縦スクロール不可
+});
+
  /*
     TODO:
     - [done]  Windows専用Downloadプロンプト
     - [done]  exoとして保存
     - [done]  AviUtl exeditのtimelineと同じ要領でカット+クリックで削除
     - [done]　タイムラインをインタラクティブ化
-    - 編集のタイムラインバーに目盛り追加・操作可能・右クリックメニュー
+    - 編集のタイムラインバーの右クリックメニュー
     - ホットキーが押されたときにインジケータ表示
-    - キーバインド設定
+    - キーバインド設定項目
     - 編集内容を一時保存・ロード
     - メニューバー
     - またはホットキーでcut positionのみ記録、自動で偶数番ごとのonair/offair判定。

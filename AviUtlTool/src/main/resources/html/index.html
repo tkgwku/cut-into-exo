@@ -18,13 +18,14 @@
         #timeline{cursor: pointer;height: 20px}
         #timeline .progress-bar{cursor: pointer;height: 20px}
 
-        #tl_items{margin:16px;padding: 0;white-space: nowrap;}
+        #timeline2{overflow-x: scroll;position: relative;top:0;left:0;background-image: radial-gradient( circle farthest-corner at 10% 20%,  rgba(247,247,255,1) 0.1%, #dde 90% );}
+        #tl_items, #tl_items_audio{margin: 8px 16px 0;padding: 0;white-space: nowrap;}
         .tl_bar{display: inline-block;margin:0;padding:0 .3em;color: white;overflow: hidden;white-space: nowrap;cursor: pointer;}
         .tl_scenechange {background-image: linear-gradient( 90.9deg,  rgba(0,139,50,1) 0.5%, rgba(0,214,32,1) 99.7% );}
-        .tl_video {background-image: radial-gradient( circle farthest-corner at 10% 20%,  rgba(26,178,203,1) 0%, rgba(0,102,161,1) 90.1% );}
+        .tl_video {background-image: radial-gradient( circle farthest-corner at 10% 20%,  rgba(16,158,183,1) 0%, rgba(0,102,161,1) 90.1% );}
         .tl_muted {background: repeating-linear-gradient(45deg,#606dbc,#606dbc 10px,#465298 10px,#465298 20px);}
-        .tl_audio {background-image: linear-gradient( 68.6deg,  rgba(229,113,87,1) 0.4%, rgba(233,84,127,1) 100.2% );}
-        #timeline2{overflow: scroll;position: relative;top:0;left:0;}
+        .tl_muted_audio{background: repeating-linear-gradient(45deg,#d12544,#d12544 10px,#ad1833 10px,#ad1833 20px);}
+        .tl_audio {background-image: radial-gradient( circle farthest-corner at 10% 20%,  rgba(233,64,64,1) 0%, rgba(163,0,0,1) 90% );}
         #tl_stick{z-index: 10;position: absolute;top: 0;left: 0;}
         #tl_ruler{cursor:text;}
     </style>
@@ -76,6 +77,7 @@
         </footer>
     </div>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-mousewheel/3.1.13/jquery.mousewheel.min.js"></script>
     <script type="text/javascript" src="data.js"></script>
     <script type="text/javascript" src="encoding.min.js"></script>
     <script type="text/javascript" src="components.js"></script>

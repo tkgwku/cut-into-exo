@@ -20,3 +20,4 @@ Javascriptはローカルで動いています。安全です。localhostでは�
 - [ffmpeg](https://www.ffmpeg.org/) - Javaで動画のメタデータを取得するのに使わせていただいてます。
 - [jQuery](https://jquery.com/) - 言わずとしれたjQuery
 - [bootstrap](https://getbootstrap.com/) - 言わずとしれたbootstrap。CSSのみ使わせていただいてます。
+- [jquery.mousewheel.js](http://plugins.jquery.com/mousewheel/) - 横スクロールプラグインです。横スクロールって案外難しいのね...。

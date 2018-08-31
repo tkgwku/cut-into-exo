@@ -41,7 +41,30 @@
         </div>
 
 
-        <h4 style="margin: 1em 0">プロジェクトの設定</h4>
+        <h4 style="margin-top: 2em">タイムラインの設定</h4>
+        <div class="form-group">
+            <div class="form-inline">
+                <span class="input-group-addon">タイムラインの長さ</span>
+                <input type="number" class="form-control" id="tlwidth" value="10000" />
+                <span class="input-group-addon">px</span>
+            </div>
+            <div class="form-inline mt-1">
+                <select class="form-control" id="seltlwidth">
+                    <option value="20000">20,000px</option>
+                    <option value="15000" selected="">15,000px</option>
+                    <option value="10000" selected="">10,000px</option>
+                    <option value="6000">6,000px</option>
+                    <option value="3000">3,000px</option>
+                    <option value="1000">1,000px</option>
+                    <option value="500">500px</option>
+                </select>
+            </div>
+            <div class="mt-1">
+                <button type="button" class="btn btn-outline-primary" id="tlsubmitchange">変更を保存</button>
+            </div>
+        </div>
+
+        <h4 style="margin: 2em 0">プロジェクトの設定</h4>
         <div class="form-group">
             <div class="form-inline">
                 <span class="input-group-addon">幅</span>
@@ -68,6 +91,9 @@
                 <option value="30">30 fps</option>
                 <option value="29.97">29.97 fps</option>
             </select>
+        </div>
+        <div class="mt-1">
+            <button type="button" class="btn btn-outline-primary" id="psubmitchange">変更を保存</button>
         </div>
         <h4 style="margin: 2em 0 1em 0">動画のプロパティ</h4>
         <table id="infotable" style="margin-top: 1em"></table>

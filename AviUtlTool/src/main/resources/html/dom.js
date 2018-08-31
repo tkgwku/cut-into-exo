@@ -5,31 +5,21 @@ var project_fps        = 60;
 var project_audio_rate = 44100;
 
 var keybinds = [
-new Keybind ("vpp", 32, false, false, false, videoPlayPause ),
-new Keybind ("cut", 13, false, false, false, cut            ),
-new Keybind ("ie",  83, true,  true,  false, issueExo       )
+    new Keybind ("vpp", 32, false, false, false, videoPlayPause ),
+    new Keybind ("cut", 13, false, false, false, cut            ),
+    new Keybind ("ie",  83, true,  true,  false, issueExo       )
 ];
 
 var scene_array = [];
+
+var config;
 
 var filename, nb_frames, width, height, r_frame_rate, duration, size;
 
 var title;
 
 function init(){
-    // load local storage data
-    var l1 = localStorage.getItem('krhr_pwidth' );
-    if (l1) $('#pwidth') .val(l1);
-    var l2 = localStorage.getItem('krhr_pheight');
-    if (l2) $('#pheight').val(l2);
-    var l3 = localStorage.getItem('krhr_pfps'   );
-    if (l3) $('#pfps')   .val(l3);
-    var l4 = localStorage.getItem('krhr_selfps' );
-    if (l4) $('#selfps') .val(l4);
-    var l5 = localStorage.getItem('krhr_selsize');
-    if (l5) $('#selsize').val(l5);
-
-	// load video metadata
+    // load video metadata
     var m = JAVA_QUERY.replace(/&apos;/g, "'").match(/[^?&]+=[^?&]*/g);
     if (m){
         for (var i = 0; i < m.length; i++) {
@@ -57,6 +47,44 @@ function init(){
                 }
             }
         }
+    }
+
+    config = new Config('krhr_pref');
+    config.init();
+
+    // load local storage data
+    var l1 = config.valueOf('pwidth');
+    if (l1) {
+        $('#pwidth').val(l1);
+        project_width = parseInt(l1, 10);
+    }
+    var l2 = config.valueOf('pheight');
+    if (l2) {
+        $('#pheight').val(l2);
+        project_height = parseInt(l2, 10);
+    }
+    var l3 = config.valueOf('pfps');
+    if (l3) {
+        $('#pfps').val(l3);
+        project_fps = parseInt(l3, 10);
+    }
+    var l4 = config.valueOf('selfps');
+    if (l4) {
+        $('#selfps').val(l4);
+    }
+    var l5 = config.valueOf('selsize');
+    if (l5) {
+        $('#selsize').val(l5);
+    }
+    var l6 = config.valueOf('tlwidth');
+    if (l6) {
+        timeline_width = parseInt(l6, 10);
+        properTLInterval();
+        $('#tlwidth').val(l6);
+    }
+    var l7 = config.valueOf('seltlwidth');
+    if (l7) {
+        $('#seltlwidth').val(l7);
     }
 
     // set video source
@@ -127,35 +155,48 @@ $('#selsize').on('change', function(){
         $('#pwidth').val(960);
         $('#pheight').val(540);
     }
-    $('#pwidth').on('click');
-    $('#pheight').on('click');
-    localStorage.setItem('krhr_selsize', $('#selsize').val());
 });
 
 $('#selfps').on('change', function(){
     var val = $('#selsize').val();
-    if (val == "60"){
-        $('#pfps').val(60);
-    } else if (val == "30"){
-        $('#pfps').val(30);
-    } else if (val == "29.97"){
-        $('#pfps').val(29,.97);
-    }
-    $('#pfps').on('click');
-    localStorage.setItem('krhr_selfps', $('#selfps').val());
+    if (val.match(/^[0-9.]+$/)) $('#pfps').val(parseFloat(val));
 });
 
-$('#pwidth').on('change', function(){
-    localStorage.setItem('krhr_pwidth', $('#pwidth').val());
+$('#seltlwidth').on('change', function(){
+    var val = $('#seltlwidth').val();
+    if (val.match(/^\d+$/)) $('#tlwidth').val(parseFloat(val));
 });
 
-$('#pheight').on('change', function(){
-    localStorage.setItem('krhr_pheight', $('#pheight').val());
+$('#tlsubmitchange').on('click', function(){
+    timeline_width = parseInt($('#tlwidth').val(), 10);
+    properTLInterval();
+    $('#timeline2').html('');
+    $('#timeline2').append(tinmelineSvgElem());
+    $('#timeline2').append(timelineSeekElem());
+    $('#timeline2').append(timelineLayerElem());
+    updateTLScroll();
+    updateSeekStick();
+
+    config.put('seltlwidth', $('#seltlwidth').val());
+    config.put('tlwidth', $('#tlwidth').val());
+
+    config.save();
 });
 
-$('#pfps').on('change', function(){
-    localStorage.setItem('krhr_pfps', $('#pfps').val());
-});
+$('#psubmitchange').on('click', function(){
+    project_width = parseInt($('#pwidth').val(), 10);
+    project_height = parseInt($('#pheight').val(), 10);
+    project_fps = parseInt($('#pfps').val(), 10);
+
+    config.put('selsize', $('#selsize').val());
+    config.put('selfps', $('#selfps').val());
+    config.put('seltlwidth', $('#seltlwidth').val());
+    config.put('pwidth', $('#pwidth').val());
+    config.put('pheight', $('#pheight').val());
+    config.put('pfps', $('#pfps').val());
+
+    config.save();
+})
 
 $('#video').on('click', function(e){
     videoPlayPause();
@@ -228,32 +269,11 @@ function cut(){
     refreshTimeline();
 }
 
-const bg = ['bg-1','bg-2','bg-3','bg-4','bg-5','bg-6','bg-7','bg-8'];
-
 function refreshTimeline(){
-    /*
-    $('#timeline').html('');
-    for (var i = 0; i < scene_array.length; i++) {
-        var b = scene_array[i].barElem(duration, bg[i%8]);
-        b.on('click', function(){
-            var index = parseInt($(this).attr('data-index'), 10);
-            if (!isNaN(index) && 0 <= index && index < scene_array.length){
-                scene_array[index] = scene_array[index].toggle();
-            }
-            refreshTimeline();
-        });
-        $('#timeline').append(b);
-    }
-    */
-
     $('#tl_items').html('');
     appendTimelineItems($('#tl_items'), 'tl_video', 'tl_muted', '【動画ファイル】{{title}}');
     $('#tl_items_audio').html('');
     appendTimelineItems($('#tl_items_audio'), 'tl_audio', 'tl_muted_audio', '【音声ファイル】{{title}}');
-}
-
-function addPosition(){
-
 }
 
 $('body').on('keydown', function(e){
@@ -268,6 +288,27 @@ $('body').on('keydown', function(e){
 
 var timeline_width = 10000;//pixel
 var timeline_interval = 60;//second
+var timeline_smaller_interval = 6;
+
+const interval_list = [20, 30, 60, 120, 240, 480, 600];
+const smaller_interval_list = [2, 3, 6, 12, 24, 48, 60];
+
+function properTLInterval(){
+    var sec_per_px = duration / timeline_width;
+    var min_sec = sec_per_px * 100;
+    var max_sec = sec_per_px * 400;
+
+    console.log( min_sec);
+    console.log(max_sec );
+
+    for (var i = interval_list.length - 1; i >= 0; i--) {
+        if (min_sec < interval_list[i] && interval_list[i] < max_sec){
+            timeline_interval = interval_list[i];
+            timeline_smaller_interval = smaller_interval_list[i];
+            return;
+        }
+    }
+}
 
 function tinmelineSvgElem(){
     var svg_wrapper = $('<div>', {
@@ -275,63 +316,79 @@ function tinmelineSvgElem(){
         click: function(e){
             var clientRect = this.getBoundingClientRect();
             var x = e.pageX - clientRect.left - window.pageXOffset - 16;
-            if (x >= 0 && x < timeline_width){
-                $('#video').get(0).currentTime = duration * x / timeline_width;
-            }
+            if (x < 0) x = 0;
+            if (x > timeline_width) x = timeline_width;
+            $('#video').get(0).currentTime = duration * x / timeline_width;
         }
     });
-    var times = Math.floor(duration/timeline_interval);
+    var svg_width = timeline_width + 60;
+    var svg_height = 48;
+    var scale = 2;
     var svg_elem = $svg('<svg>', {
         'xmlns':'http://www.w3.org/2000/svg',
         'xmlns:xlink':'http://www.w3.org/1999/xlink',
         'version':'1.1',
-        'width': timeline_width + 332,
-        'height': 48
+        'viewBox':'0 0 '+(svg_width*scale)+' '+(svg_height*scale),
+        'width': svg_width,
+        'height': svg_height
     });
-    // 0, 1, 2, ... , n-1, n
-    for (var i = 0; i <= times; i++) {
-        var sec = i * timeline_interval;//0, 10, ..., 10n
+    for (var sec = 0; sec < duration; sec += timeline_smaller_interval) {
         var line_svg_pos_x = Math.round(sec * timeline_width / duration) + 16;
-        svg_elem.append($svg('<text>', {
-            text: secString(sec),
-            'x': line_svg_pos_x,
-            'y': 30,
-            'text-anchor':'middle',
-            'font-size': '16px'
-        }));
-        svg_elem.append($svg('<line>', {
-            'x1': line_svg_pos_x,
-            'y1': 34,
-            'x2': line_svg_pos_x,
-            'y2': 46,
-            'stroke':'black'
-        }));
+        if (sec % timeline_interval === 0){
+            svg_elem.append($svg('<text>', {
+                text: secString(sec),
+                'x': line_svg_pos_x*scale,
+                'y': 30*scale,
+                'text-anchor':'middle',
+                'font-size': (12*scale)+'px'
+            }));
+            svg_elem.append($svg('<line>', {
+                'x1': line_svg_pos_x*scale,
+                'y1': 34*scale,
+                'x2': line_svg_pos_x*scale,
+                'y2': 46*scale,
+                'stroke':'#777',
+                'stroke-width':4
+            }));
+        } else {
+            svg_elem.append($svg('<line>', {
+                'x1': line_svg_pos_x*scale,
+                'y1': 34*scale,
+                'x2': line_svg_pos_x*scale,
+                'y2': 40*scale,
+                'stroke':'#ccc',
+                'stroke-width':4
+            }));
+        }
     }
     svg_elem.append($svg('<line>', {
-        'x1': 16,
-        'y1': 40,
-        'x2': (timeline_width + 16),
-        'y2': 40,
-        'stroke':'black'
+        'x1': 16*scale,
+        'y1': 40*scale,
+        'x2': (timeline_width + 16)*scale,
+        'y2': 40*scale,
+        'stroke':'#777',
+        'stroke-width':4
     }));
     svg_elem.append($svg('<text>', {
         text: '最後',
-        'x': timeline_width+16,
-        'y': 30,
+        'x': (timeline_width+16)*scale,
+        'y': 30*scale,
         'text-anchor':'middle',
-        'font-size': '16px'
+        'font-size': (12*scale)+'px'
     }));
     svg_elem.append($svg('<line>', {
-        'x1': timeline_width+16,
-        'y1': 34,
-        'x2': timeline_width+16,
-        'y2': 46,
-        'stroke':'black'
+        'x1': (timeline_width+16)*scale,
+        'y1': 34*scale,
+        'x2': (timeline_width+16)*scale,
+        'y2': 46*scale,
+        'stroke':'#777',
+        'stroke-width':4
     }));
 
     svg_wrapper.append(svg_elem);
     return svg_wrapper;
 }
+
 function timelineSeekElem(){
     var seek_stick = $('<div>', {
         'id': 'tl_stick'
@@ -397,17 +454,25 @@ function appendTimelineItems(elem, activeClass, muteClass, titleFormat){
 }
 
 $('#video').on('timeupdate', function(){
-    var w = Math.round($('#video').get(0).currentTime * (timeline_width + 32) / duration - $('#timeline2').width() / 2);
-    if (w < 0) w = 0;
-    $('#timeline2').scrollLeft(w);
-    $('#tl_stick').css('left', Math.round(15 + ($('#video').get(0).currentTime * timeline_width / duration)));
+    updateTLScroll();
+    updateSeekStick();
 });
 //なぜか重い
 
 $('#timeline2').mousewheel(function(event, mov) {
     $('#timeline2').scrollLeft($('#timeline2').scrollLeft() - mov * 100);
-    return false;   //縦スクロール不可
+    return false;
 });
+
+function updateSeekStick(){
+    $('#tl_stick').css('left', Math.round(15 + ($('#video').get(0).currentTime * timeline_width / duration)));
+}
+
+function updateTLScroll(){
+    var w = Math.round($('#video').get(0).currentTime * (timeline_width + 32) / duration - $('#timeline2').width() / 2);
+    if (w < 0) w = 0;
+    $('#timeline2').scrollLeft(w);
+}
 
  /*
     TODO:
@@ -432,6 +497,8 @@ $('#timeline2').mousewheel(function(event, mov) {
     - 配置設定 ( pos + size ) 画像を用いたわかりやすいGUI
     - カットされる予定の箇所を再生するときは動画上にOverlay ( 動画上HUD )
     - 注意書き
+    - 10秒飛ばす
+    - 30秒飛ばす
 
     WON'T:
     - 音量設定

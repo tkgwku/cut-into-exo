@@ -67,6 +67,53 @@ Cut.prototype.lengthFrame = function(){
 }
 
 
+/* class config */
+var Config = function(registryId){
+    this.registryId = registryId;
+    this.map        = {};
+}
+
+Config.prototype.put = function(key, value){
+    this.map[key] = value;
+}
+
+Config.prototype.valueOf = function(key){
+    return this.map[key];
+}
+
+Config.prototype.save = function(){
+    var keys = Object.keys(this.map);
+    var str = '';
+    for (var i = 0; i < keys.length; i++) {
+        str += '&' + Config.escape(keys[i]) + '=' + Config.escape(this.map[keys[i]]);
+    }
+    localStorage.setItem(this.registryId, str.substring(1));
+}
+
+Config.prototype.init = function(){
+    var l = localStorage.getItem(this.registryId);
+    if (l) {
+        var m = l.match(/[^&=]+=[^&=]+/g);
+        for (var i = 0; i < m.length; i++) {
+            var s = m[i].split('=');
+            this.put(Config.unescape(s[0]), Config.unescape(s[1]));
+        }
+    }
+}
+
+Config.prototype.has = function(key){
+    return this.map.indexOf(key) !== -1;
+}
+
+Config.escape = function(str){
+    return str.replace(/&/g, '%amp;').replace(/=/g, '%eq;');
+}
+
+Config.unescape = function(str){
+    return str.replace(/%amp;/g, '&').replace(/%eq;/g, '=');
+}
+
+
 /* helper functions */
 function exo(videoPath, cutArray, projectWidth, projectHeight, projectFps, projectAudioRate, extensionRate){
     var totalFrame = 0;

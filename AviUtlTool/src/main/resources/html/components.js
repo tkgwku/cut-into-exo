@@ -190,10 +190,13 @@ function sizeString(byte){
     if (byte < 100){
         return byte + " byte";
     } else if (byte < 100000){
-        var a = Math.round( byte * 1000 / 1024 ) / 1000;
+        var a = Math.round( byte * 100 / 1024 ) / 100;
         return a + " KB";
+    } else if (byte < 100000000){
+        var a = Math.round( (byte * 100 / 1024) / 1024 ) / 100;
+        return a + " MB";
     } else {
-        var a = Math.round( (byte * 1000 / 1024) / 1024 ) / 1000;
+        var a = Math.round( ((byte * 100 / 1024) / 1024) / 1024 ) / 100;
         return a + " GB";
     }
 }

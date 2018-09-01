@@ -1,7 +1,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <title>きりはりくん編集画面</title>
     <style type="text/css">
         button {cursor: pointer;}
@@ -28,6 +28,11 @@
         .tl_audio {background-image: radial-gradient( circle farthest-corner at 10% 20%,  rgba(233,64,64,1) 0%, rgba(163,0,0,1) 90% );}
         #tl_stick{z-index: 10;position: absolute;top: 0;left: 0;}
         #tl_ruler{cursor:text;}
+
+        .tabcontent{border-right: 1px solid #ddd;border-bottom: 1px solid #ddd;border-left:1px solid #ddd;padding: 1em 1.5em 1.5em;border-radius: 0 0 4px 4px;min-height: 30em}
+        .block{display: block}
+        .silent {display: none;}
+        .nav-link{cursor: pointer;color: #07c}
     </style>
 </head>
 <body onload="init();">
@@ -40,63 +45,112 @@
         <div id="timeline2" style="height: 160px;margin-top: 1em">
         </div>
 
-
-        <h4 style="margin-top: 2em">タイムラインの設定</h4>
-        <div class="form-group">
-            <div class="form-inline">
-                <span class="input-group-addon">タイムラインの長さ</span>
-                <input type="number" class="form-control" id="tlwidth" value="10000" />
-                <span class="input-group-addon">px</span>
-            </div>
-            <div class="form-inline mt-1">
-                <select class="form-control" id="seltlwidth">
-                    <option value="20000">20,000px</option>
-                    <option value="15000" selected="">15,000px</option>
-                    <option value="10000" selected="">10,000px</option>
-                    <option value="6000">6,000px</option>
-                    <option value="3000">3,000px</option>
-                    <option value="1000">1,000px</option>
-                    <option value="500">500px</option>
-                </select>
-            </div>
-            <div class="mt-1">
-                <button type="button" class="btn btn-outline-primary" id="tlsubmitchange">変更を保存</button>
-            </div>
+        <div style="margin-top: 2em;">
+            <ul class="nav nav-tabs">
+                <li class="nav-item">
+                    <span class="nav-link active" onclick="tab('tab_proj_settings')" id="nav_tab_proj_settings">プロジェクトの設定</span>
+                </li>
+                <li class="nav-item">
+                    <span class="nav-link" onclick="tab('tab_settings')" id="nav_tab_settings">設定</span>
+                </li>
+                <li class="nav-item">
+                    <span class="nav-link" onclick="tab('tab_property')" id="nav_tab_property">動画のプロパティ</span>
+                </li>
+                <li class="nav-item">
+                    <span class="nav-link">キー設定</span>
+                </li>
+            </ul>
         </div>
 
-        <h4 style="margin: 2em 0">プロジェクトの設定</h4>
-        <div class="form-group">
-            <div class="form-inline">
-                <span class="input-group-addon">幅</span>
-                <input type="number" class="form-control" id="pwidth" value="1280" />
-                <span class="input-group-addon">高さ</span>
-                <input type="number" class="form-control" id="pheight" value="720" />
+        <div class="tabcontent">
+            <div id="tab_proj_settings">
+                <p class="mb-1">解像度</p>
+                <div class="form-group mb-2">
+                    <div class="form-inline">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">幅</span>
+                            </div>
+                            <input type="number" class="form-control" placeholder="1280" id="pwidth" >
+                            <div class="input-group-append">
+                                <span class="input-group-text">px</span>
+                            </div>
+                        </div>
+                        <div class="input-group ml-2">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">高さ</span>
+                            </div>
+                            <input type="number" class="form-control" placeholder="720" id="pheight">
+                            <div class="input-group-append">
+                                <span class="input-group-text">px</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group mb-3">
+                    <div class="form-inline">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text">プリセットから選ぶ</label>
+                            </div>
+                            <select class="custom-select" id="selsize">
+                                <option value="1080">1920 * 1080 (1080p)</option>
+                                <option value="720" selected="">1280 * 720 (720p)</option>
+                                <option value="540">960 * 540</option>
+                                <option value="360">640 * 360 (360p)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="mb-1">フレームレート</p>
+                <div class="form-group mb-2">
+                    <div class="form-inline">
+                        <div class="input-group">
+                            <input type="number" class="form-control" placeholder="30" id="pfps">
+                            <div class="input-group-append">
+                                <span class="input-group-text">fps</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group mb-3">
+                    <div class="form-inline">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text">プリセットから選ぶ</label>
+                            </div>
+                            <select class="custom-select" id="selfps">
+                                <option value="60">60 fps</option>
+                                <option value="30" selected="">30 fps</option>
+                                <option value="29.97">29.97 fps</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-1">
+                    <button type="button" class="btn btn-outline-primary" id="psubmitchange">変更を保存</button>
+                </div>
             </div>
-            <div class="form-inline mt-1">
-                <select class="form-control" id="selsize">
-                    <option value="1080">1920 * 1080 (1080p)</option>
-                    <option value="720" selected="">1280 * 720 (720p)</option>
-                    <option value="540">960 * 540</option>
-                    <option value="360">640 * 360 (360p)</option>
-                </select>
+
+            <div id="tab_settings" class="silent">
+                <div class="form-group">
+                    <div>
+                        <label style="margin-right: 1em">タイムラインの拡大率</label>
+                        <input type="range" class="custom-range" id="tlwidth" style="width: 150px;" min="0" max="16" >
+                        <span id="tlwidth_indicater" class="text-muted"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab_property" class="silent">
+                <table id="infotable"></table>
+            </div>
+
+            <div id="tab_keybind" class="silent">
+                
             </div>
         </div>
-        <div class="mt-1 form-inline">
-            <span class="input-group-addon">フレームレート</span>
-            <input type="number" class="form-control" id="pfps" value="60" />
-        </div>
-        <div class="form-inline mt-1">
-            <select class="form-control" id="selfps">
-                <option value="60" selected="">60 fps</option>
-                <option value="30">30 fps</option>
-                <option value="29.97">29.97 fps</option>
-            </select>
-        </div>
-        <div class="mt-1">
-            <button type="button" class="btn btn-outline-primary" id="psubmitchange">変更を保存</button>
-        </div>
-        <h4 style="margin: 2em 0 1em 0">動画のプロパティ</h4>
-        <table id="infotable" style="margin-top: 1em"></table>
 
         <footer style="margin-top: 3em;font-size: .8em">
             <p><a href="https://github.com/tkgwku/cut-into-exo">Github</a> 一部のブラウザでは動作しない可能性があります。&copy; 2018 fine_diary, all rights reserved.</p>

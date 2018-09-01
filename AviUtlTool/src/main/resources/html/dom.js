@@ -78,13 +78,10 @@ function init(){
     }
     var l6 = config.valueOf('tlwidth');
     if (l6) {
-        timeline_width = parseInt(l6, 10);
+        timeline_width = tlwidth_table[parseInt(l6, 10)];
+        $('#tlwidth_indicater').text(timeline_width+'px');
         properTLInterval();
         $('#tlwidth').val(l6);
-    }
-    var l7 = config.valueOf('seltlwidth');
-    if (l7) {
-        $('#seltlwidth').val(l7);
     }
 
     // set video source
@@ -99,6 +96,7 @@ function init(){
     }
 
     var table = $('<table>', {'class': 'table'});
+    var tr0 = trh('Key', 'Value');
     var tr1 = tr('ファイルのパス', filename);
     var tr2 = tr('総フレーム数', nb_frames);
     var tr3 = tr('幅', width);
@@ -106,6 +104,7 @@ function init(){
     var tr5 = tr('フレームレート', r_frame_rate);
     var tr6 = tr('長さ', durationString(duration));
     var tr7 = tr('ファイルサイズ', sizeString(size));
+    table.append(tr0);
     table.append(tr1);
     table.append(tr2);
     table.append(tr3);
@@ -140,6 +139,16 @@ function tr(a, b){
     return tr;
 }
 
+// return table header row jQuery element
+function trh(a, b){
+    var tr = $('<tr>');
+    var td1 = $('<th>', {text:a});
+    var td2 = $('<th>', {text:b});
+    tr.append(td1);
+    tr.append(td2);
+    return tr;
+}
+
 $('#selsize').on('change', function(){
     var val = $('#selsize').val();
     if (val == "1080"){
@@ -158,17 +167,16 @@ $('#selsize').on('change', function(){
 });
 
 $('#selfps').on('change', function(){
-    var val = $('#selsize').val();
+    var val = $('#selfps').val();
     if (val.match(/^[0-9.]+$/)) $('#pfps').val(parseFloat(val));
 });
 
-$('#seltlwidth').on('change', function(){
-    var val = $('#seltlwidth').val();
-    if (val.match(/^\d+$/)) $('#tlwidth').val(parseFloat(val));
-});
+const tlwidth_table = [300, 500, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 14000, 18000, 23000, 27000];
 
-$('#tlsubmitchange').on('click', function(){
-    timeline_width = parseInt($('#tlwidth').val(), 10);
+$('#tlwidth').on('input', function() {
+    var i = parseInt($(this).val(), 10);
+    timeline_width = tlwidth_table[i];
+    $('#tlwidth_indicater').text(timeline_width+'px');
     properTLInterval();
     $('#timeline2').html('');
     $('#timeline2').append(tinmelineSvgElem());
@@ -176,10 +184,7 @@ $('#tlsubmitchange').on('click', function(){
     $('#timeline2').append(timelineLayerElem());
     updateTLScroll();
     updateSeekStick();
-
-    config.put('seltlwidth', $('#seltlwidth').val());
-    config.put('tlwidth', $('#tlwidth').val());
-
+    config.put('tlwidth', i+'');
     config.save();
 });
 
@@ -190,7 +195,6 @@ $('#psubmitchange').on('click', function(){
 
     config.put('selsize', $('#selsize').val());
     config.put('selfps', $('#selfps').val());
-    config.put('seltlwidth', $('#seltlwidth').val());
     config.put('pwidth', $('#pwidth').val());
     config.put('pheight', $('#pheight').val());
     config.put('pfps', $('#pfps').val());
@@ -290,16 +294,13 @@ var timeline_width = 10000;//pixel
 var timeline_interval = 60;//second
 var timeline_smaller_interval = 6;
 
-const interval_list = [20, 30, 60, 120, 240, 480, 600];
-const smaller_interval_list = [2, 3, 6, 12, 24, 48, 60];
+const interval_list = [5, 10, 20, 30, 60, 120, 240, 480, 600];
+const smaller_interval_list = [1, 1, 2, 3, 6, 12, 24, 48, 60];
 
 function properTLInterval(){
     var sec_per_px = duration / timeline_width;
     var min_sec = sec_per_px * 100;
     var max_sec = sec_per_px * 400;
-
-    console.log( min_sec);
-    console.log(max_sec );
 
     for (var i = interval_list.length - 1; i >= 0; i--) {
         if (min_sec < interval_list[i] && interval_list[i] < max_sec){
@@ -308,6 +309,14 @@ function properTLInterval(){
             return;
         }
     }
+    if (min_sec <=interval_list[0]) {
+        timeline_interval = interval_list[0];
+        timeline_smaller_interval = smaller_interval_list[0];
+        return;
+    }
+    timeline_interval = interval_list[interval_list.length -1];
+    timeline_smaller_interval = smaller_interval_list[smaller_interval_list.length -1];
+    return;
 }
 
 function tinmelineSvgElem(){
@@ -474,32 +483,45 @@ function updateTLScroll(){
     $('#timeline2').scrollLeft(w);
 }
 
+const tab_id_list = ['tab_settings', 'tab_proj_settings', 'tab_property'];
+
+function tab(id){
+    for (var i = 0; i < tab_id_list.length; i++) {
+        if (tab_id_list[i] === id){
+            $('#'+id).removeClass('silent');
+            $('#nav_'+id).addClass('active');
+        } else {
+            $('#'+tab_id_list[i]).addClass('silent');
+            $('#nav_'+tab_id_list[i]).removeClass('active');
+        }
+    }
+}
+
  /*
     TODO:
     - [done]  Windows専用Downloadプロンプト
     - [done]  exoとして保存
     - [done]  AviUtl exeditのtimelineと同じ要領でカット+クリックで削除
-    - [done]　タイムラインをインタラクティブ化
+    - [done]  タイムラインをインタラクティブ化
+    - [done]  目盛り追加
+    - [done]  目盛りの拡大率設定
+    - [done]  目盛りの値を動的に調整
+    - [done]  タブで項目を表示 または ブロック化してCollapse
+    - [done]  メニューバー
     - 編集のタイムラインバーの右クリックメニュー
     - ホットキーが押されたときにインジケータ表示
     - キーバインド設定項目
     - 編集内容を一時保存・ロード
-    - メニューバー
-    - またはホットキーでcut positionのみ記録、自動で偶数番ごとのonair/offair判定。
-    - 上２つをモード切替
     - シーンチェンジ / シーンチェンジSEを追加
     - シークバーを動かしたらload待ちにする ( 重いので )
     - ビデオ拡大率設定 / 自動拡大率設定 ( 画面いっぱいに動画が来る )
-    - 目盛り追加
-    - 目盛りの拡大率設定
-    - 目盛りの値を動的に調整
-    - タブで項目を表示 または ブロック化してCollapse
     - 配置設定 ( pos + size ) 画像を用いたわかりやすいGUI
     - カットされる予定の箇所を再生するときは動画上にOverlay ( 動画上HUD )
     - 注意書き
     - 10秒飛ばす
     - 30秒飛ばす
 
-    WON'T:
+    しない:
     - 音量設定
+    - 周波数設定
 */

@@ -9,22 +9,22 @@ import java.nio.file.Paths;
 import java.security.CodeSource;
 
 public class Cmd {
-	public static Process execFfmpeg(String cmdLine) {
+    public static Process execFfmpeg(String cmdLine) {
         Runtime runtime = Runtime.getRuntime();
 
         String[] command = {"cmd", "/c", cmdLine};
 
         File ffmpegBin = null;
 
-		try {
-			ffmpegBin = getExternalFile("ffmpeg/bin");
-		} catch (URISyntaxException e1) {
-			e1.printStackTrace();
-		}
+        try {
+            ffmpegBin = getExternalFile("ffmpeg/bin");
+        } catch (URISyntaxException e1) {
+            e1.printStackTrace();
+        }
 
         if (ffmpegBin == null || !ffmpegBin.exists()) {
-        	// not found ffmpeg
-        	return null;
+            // not found ffmpeg
+            return null;
         }
 
         Process p;
@@ -36,24 +36,24 @@ public class Cmd {
         }
 
         return p;
-	}
+    }
 
-	public static URI getJarURI(Class<?> clazz) {
-		CodeSource cs = clazz.getProtectionDomain().getCodeSource();
-		try {
-			return cs.getLocation().toURI();
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
+    public static URI getJarURI(Class<?> clazz) {
+        CodeSource cs = clazz.getProtectionDomain().getCodeSource();
+        try {
+            return cs.getLocation().toURI();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
-	public static File getExternalFile(String pathStr) throws URISyntaxException {
+    public static File getExternalFile(String pathStr) throws URISyntaxException {
         URI jarURI = getJarURI(App.class);
 
         if (jarURI == null) {
-        	//URISyntaxException
-        	return null;
+            //URISyntaxException
+            return null;
         }
 
         Path jarPath = Paths.get(jarURI);
@@ -61,5 +61,5 @@ public class Cmd {
         String extPath = ("/"+pathStr).replaceAll("/", File.separator.replace("\\", "\\\\"));
 
         return new File(jarPath.getParent() + extPath);
-	}
+    }
 }

@@ -27,23 +27,23 @@ public class Mp4 {
         Process p = Cmd.execFfmpeg(cmdStr);
 
         if (p == null) {
-        	return false;
+            return false;
         }
 
         InputStream is = p.getInputStream();
         BufferedReader br;
-		try {
-			br = new BufferedReader(new InputStreamReader(is, "JISAutoDetect"));
-		} catch (UnsupportedEncodingException e1) {
-			e1.printStackTrace();
-			return false;
-		}
+        try {
+            br = new BufferedReader(new InputStreamReader(is, "JISAutoDetect"));
+        } catch (UnsupportedEncodingException e1) {
+            e1.printStackTrace();
+            return false;
+        }
 
-		vstream_metadatas = new HashMap<String, String>();
-		astream_metadatas = new HashMap<String, String>();
-		format_metadatas = new HashMap<String, String>();
+        vstream_metadatas = new HashMap<String, String>();
+        astream_metadatas = new HashMap<String, String>();
+        format_metadatas = new HashMap<String, String>();
 
-		int state = -1;
+        int state = -1;
 
         try {
             while (true) {
@@ -54,18 +54,18 @@ public class Mp4 {
                     if (line.matches("^[^=]+=[^=]+$")) {
                         String[] s = line.split("=");
                         switch (state) {
-                        	case 0:
-                        		vstream_metadatas.put(s[0], s[1]);
-                        		break;
-                        	case 1:
-                        		astream_metadatas.put(s[0], s[1]);
-                        		break;
-                        	case 2:
-                        		format_metadatas.put(s[0], s[1]);
-                        		break;
+                        case 0:
+                            vstream_metadatas.put(s[0], s[1]);
+                            break;
+                        case 1:
+                            astream_metadatas.put(s[0], s[1]);
+                            break;
+                        case 2:
+                            format_metadatas.put(s[0], s[1]);
+                            break;
                         }
                     } else if (line.matches("^\\[\\w+\\]$")) {
-                    	state++;
+                        state++;
                     }
                 }
             }
@@ -123,22 +123,22 @@ public class Mp4 {
         }
         return true;
     }
-    */
+     */
 }
 class Metadata<K,V> {
-	K key;
-	V val;
+    K key;
+    V val;
 
-	public Metadata(K key, V val) {
-		this.key = key;
-		this.val = val;
-	}
+    public Metadata(K key, V val) {
+        this.key = key;
+        this.val = val;
+    }
 
-	public K getKey() {
-		return this.key;
-	}
+    public K getKey() {
+        return this.key;
+    }
 
-	public V getValue() {
-		return this.val;
-	}
+    public V getValue() {
+        return this.val;
+    }
 }

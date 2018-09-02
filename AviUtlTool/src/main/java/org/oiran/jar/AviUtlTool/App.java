@@ -73,7 +73,7 @@ class VideoDropTargetAdapter extends DropTargetAdapter{
                 "nb_frames"
         };
         String[] astreamParamToSend = {
-        		"sample_rate"
+                "sample_rate"
         };
         String[] fstreamParamToSend = {
                 "size"
@@ -106,7 +106,7 @@ class VideoDropTargetAdapter extends DropTargetAdapter{
                                 }
                             }
                             if (vq.length() > 0) {
-                            	jsStr += "const JAVA_VIDEO_STREAM = '"+vq.substring(1)+"';";
+                                jsStr += "const JAVA_VIDEO_STREAM = '"+vq.substring(1)+"';";
                             }
 
                             String aq = "";
@@ -116,7 +116,7 @@ class VideoDropTargetAdapter extends DropTargetAdapter{
                                 }
                             }
                             if (aq.length() > 0) {
-                            	jsStr += "const JAVA_AUDIO_STREAM = '"+aq.substring(1)+"';";
+                                jsStr += "const JAVA_AUDIO_STREAM = '"+aq.substring(1)+"';";
                             }
 
                             String fq = "";
@@ -126,7 +126,7 @@ class VideoDropTargetAdapter extends DropTargetAdapter{
                                 }
                             }
                             if (fq.length() > 0) {
-                            	jsStr += "const JAVA_FORMAT = '"+fq.substring(1)+"';";
+                                jsStr += "const JAVA_FORMAT = '"+fq.substring(1)+"';";
                             }
 
                             jsStr += "const JAVA_FILE_PATH='"+escape(f.getAbsolutePath())+"';";

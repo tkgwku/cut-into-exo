@@ -1,12 +1,12 @@
 
 /* class Keybind */
-var Keybind = function(id, keycode, ctrl, shift, alt, onkeypress){
-    this.id         = id;
+var Keybind = function(keycode, ctrl, shift, alt, onkeypress, keydesc){
     this.keycode    = keycode;
     this.ctrl       = ctrl;
     this.shift      = shift;
     this.alt        = alt;
     this.onkeypress = onkeypress;
+    this.keydesc    = keydesc;
 }
 
 Keybind.prototype.call = function(){
@@ -22,9 +22,43 @@ Keybind.prototype.iskeypressed = function(event){
     return true;
 };
 
-Keybind.prototype.setkeycode = function(keycode){
-    this.keycode = keycode;
-};
+Keybind.prototype.toString = function(){
+    var str = '' + this.keycode;
+    str += ',' + (this.ctrl ? '1' : '0');
+    str += ',' + (this.shift ? '1' : '0');
+    str += ',' + (this.alt ? '1' : '0');
+    str += ',' + Keybind.keydescEscape(this.keydesc);
+    return str;
+}
+
+Keybind.keydescEscape = function(str){
+    return str.replace(/,/g, '%cma').replace(/:/g, '%cln').replace(/;/g, '%smc');
+}
+
+Keybind.keydescUnescape = function(str){
+    return str.replace(/%cma/g, ',').replace(/%cln/g, ':').replace(/%smc/g, ';');
+}
+
+Keybind.prototype.fromString = function(str){
+    var t = str.split(',');
+    if (t.length === 5){
+        return new Keybind(parseInt(t[0], 10), t[1] === '1', t[2] === '1', t[3] === '1', this.onkeypress, Keybind.keydescUnescape(t[4]));
+    }
+    return this;
+}
+
+Keybind.prototype.set = function(event){
+    if (event.keyCode === 27){
+        return new Keybind(-1, false, false, false, this.onkeypress, 'none');
+    } else {
+        var _d = '';
+        _d += event.ctrlKey  ? 'ctrl + '  : '';
+        _d += event.shiftKey ? 'shift + ' : '';
+        _d += event.altKey   ? 'alt + '   : '';
+        _d += event.key.replace(' ', 'space');
+        return new Keybind(event.keyCode, event.ctrlKey, event.shiftKey, event.altKey, this.onkeypress, _d);
+    }
+}
 
 
 /* class Scene */

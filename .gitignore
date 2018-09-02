@@ -12,4 +12,7 @@ data.js
 ffmpeg.exe
 ffplay.exe
 _icons
-_exmaple
+launch4j_config.xml
+build/exe/
+build/lib/
+*.bat

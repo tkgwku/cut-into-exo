@@ -8,17 +8,6 @@
         button {cursor: pointer;}
         #body{min-height: 100%}
         #video{max-width: 100%;}
-        .bg-1{background-color: #a8c2ed}
-        .bg-2{background-color: #fcbad6}
-        .bg-3{background-color: #f7d9bb}
-        .bg-4{background-color: #eaffc4}
-        .bg-5{background-color: #f1c4ff}
-        .bg-6{background-color: #bbf7d3}
-        .bg-7{background-color: #c4f3ff}
-        .bg-8{background-color: #fff9c4}
-        #timeline{cursor: pointer;height: 20px}
-        #timeline .progress-bar{cursor: pointer;height: 24px}
-
         #timeline2{overflow-x: scroll;position: relative;top:0;left:0;background-image: radial-gradient( circle farthest-corner at 10% 20%,  rgba(247,247,255,1) 0.1%, #dde 90% );}
         #tl_items, #tl_items_audio{margin: 8px 16px 0;padding: 0;white-space: nowrap;}
         .tl_bar{display: inline-block;margin:0;padding:0 .3em;color: white;overflow: hidden;white-space: nowrap;cursor: pointer;}
@@ -30,18 +19,21 @@
         #tl_stick{z-index: 10;position: absolute;top: 0;left: 0;}
         #tl_ruler{cursor:text;}
 
-        .tabcontent{border-right: 1px solid #ddd;border-bottom: 1px solid #ddd;border-left:1px solid #ddd;padding: 1em 1.5em 1.5em;border-radius: 0 0 4px 4px;min-height: 30em}
+        .tabcontent{border-right: 1px solid #ddd;border-bottom: 1px solid #ddd;border-left:1px solid #ddd;padding: 1em 1.5em 1.5em;border-radius: 0 0 4px 4px;min-height: 32em}
         .block{display: block}
         .silent {display: none;}
         .nav-link{cursor: pointer;color: #07c}
+        .key{background-color: #eee;cursor: text;text-transform: capitalize;}
+        .bl{border-left: 1px solid #bbb;}
+        .bt{border-top: 1px solid #bbb;}
+        #keybindtable td{padding: .7em 1em}
+        #keybindtable th{padding: .7em 1em;font-weight: normal;}
     </style>
 </head>
 <body onload="init();">
     <div class="container">
         <h3 style="margin: 1em 0 1em 0;">動画をカット編集</h3>
         <video id="video" controls=""></video>
-        <!--<div class="progress mt-1" id="timeline"></div>-->
-
 
         <div id="timeline2" style="height: 160px;margin-top: 1em">
         </div>
@@ -145,11 +137,42 @@
             </div>
 
             <div id="tab_property" class="silent">
-                <table id="infotable"></table>
+                <div id="infotable"></div>
             </div>
 
             <div id="tab_keybind" class="silent">
-                <p>under construction</p>
+                <table id="keybindtable">
+                    <tr class="text-muted">
+                        <th>Action</th><th style="min-width: 200px">Key</th>
+                    </tr>
+                    <tr class="bt">
+                        <td>現在位置でカット</td><td class="bl key" onclick="editKey('cut',this)" id="kb_cut">Enter</td>
+                    </tr>
+                    <tr class="bt">
+                        <td>EXOファイルとしてエクスポート</td><td class="bl key" onclick="editKey('ie',this)" id="kb_ie">Ctrl Shift S</td>
+                    </tr>
+                    <tr class="bt">
+                        <td>動画を停止/再生</td><td class="bl key" onclick="editKey('vpp',this)" id="kb_vpp">Space</td>
+                    </tr>
+                    <tr class="bt">
+                        <td>10フレーム進む</td><td class="bl key" onclick="editKey('ta',this)" id="kb_ta">Arrowright</td>
+                    </tr>
+                    <tr class="bt">
+                        <td>10フレーム戻る</td><td class="bl key" onclick="editKey('tb',this)" id="kb_tb">Arrowleft</td>
+                    </tr>
+                    <tr class="bt">
+                        <td>1フレーム進む</td><td class="bl key font-italic" onclick="editKey('oa',this)" id="kb_oa">None</td>
+                    </tr>
+                    <tr class="bt">
+                        <td>1フレーム戻る</td><td class="bl key font-italic" onclick="editKey('ob',this)" id="kb_ob">None</td>
+                    </tr>
+                    <tr class="bt">
+                        <td>TLを拡大する</td><td class="bl key font-italic" onclick="editKey('etl',this)" id="kb_etl">None</td>
+                    </tr>
+                    <tr class="bt">
+                        <td>TLを縮小する</td><td class="bl key font-italic" onclick="editKey('stl',this)" id="kb_stl">None</td>
+                    </tr>
+                </table>
             </div>
         </div>
 

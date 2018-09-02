@@ -4,11 +4,17 @@ var project_height     = 720;
 var project_fps        = 60;
 var project_audio_rate = 44100;
 
-var keybinds = [
-    new Keybind ("vpp", 32, false, false, false, videoPlayPause ),
-    new Keybind ("cut", 13, false, false, false, cut            ),
-    new Keybind ("ie",  83, true,  true,  false, issueExo       )
-];
+var keybinds = {
+    'vpp' : new Keybind (32, false, false, false, videoPlayPause , 'space'),
+    'cut' : new Keybind (13, false, false, false, cut            , 'enter'),
+    'ie'  : new Keybind (83, true,  true,  false, issueExo       , 'ctrl + shift + s'),
+    'ta'  : new Keybind (39, false, false, false, tenFrameAftre  , 'arrowright'),
+    'tb'  : new Keybind (37, false, false, false, tenFrameBefore , 'arrowleft'),
+    'oa'  : new Keybind (-1, false, false, false, oneFrameAftre  , 'none'),
+    'ob'  : new Keybind (-1, false, false, false, oneFrameBefore , 'none'),
+    'etl' : new Keybind (-1, false, false, false, expandTL       , 'none'),
+    'stl' : new Keybind (-1, false, false, false, shrinkTL       , 'none')
+};
 
 var scene_array = [];
 
@@ -107,6 +113,25 @@ function init(){
         $('#tlwidth').val(l6);
     }
 
+    var keybind_ls = localStorage.getItem('krhr_kb');
+    if (keybind_ls){
+        var kls = keybind_ls.split(';');
+        for (var i = 0; i < kls.length; i++) {
+            var klskv = kls[i].split(':');
+            if (klskv.length === 2){
+                var id = klskv[0];
+                var kb = keybinds[id].fromString(klskv[1]);
+                $('#kb_'+id).text(kb.keydesc);
+                if (kb.keycode === -1){
+                    $('#kb_'+id).addClass('font-italic');
+                } else {
+                    $('#kb_'+id).removeClass('font-italic');
+                }
+                keybinds[id] = kb;
+            }
+        }
+    }
+
     refreshPSetting();
 
     // set video source
@@ -114,9 +139,9 @@ function init(){
         $('#video').append($('<source>', {
             'src': filename
         }));
-        var m = filename.match(/([^\\.]+.[^\\.]+)$/);
-        if (m && m.length >= 2){
-            title = m[1];
+        var m4 = filename.match(/([^\\.]+.[^\\.]+)$/);
+        if (m4 && m4.length >= 2){
+            title = m4[1];
         }
     }
 
@@ -152,7 +177,7 @@ function init(){
         $('#timeline2').append(tinmelineSvgElem());
         $('#timeline2').append(timelineSeekElem());
         $('#timeline2').append(timelineLayerElem());
-    } 
+    }
 }
 //init end
 
@@ -313,27 +338,155 @@ function refreshTimeline(){
     appendTimelineItems($('#tl_items_audio'), 'tl_audio', 'tl_muted_audio', '【音声ファイル】{{title}}');
 }
 
+var monitoring = '';
+var editelem = null;
+
+var expire_time = 0;
+var pressed_index = -1;
+
 $('body').on('keydown', function(e){
-    for (var i = 0; i < keybinds.length; i++) {
-        if (keybinds[i].iskeypressed(e)){
+    if (monitoring != ''){
+        e.preventDefault();
+        if (e.keyCode !== 18 && e.keyCode !== 17 && e.keyCode !== 16){
+            if (alreadyRegistered(e)){
+                $(editelem).text('すでに登録済みのキー');
+                $(editelem).removeClass('text-muted');
+                $(editelem).addClass('text-danger');
+            } else {
+                setKey(monitoring, e);
+            }
+        }
+        return;
+    }
+    var keys = Object.keys(keybinds);
+    for (var i = 0; i < keys.length; i++) {
+        var keybind = keybinds[keys[i]];
+        if (keybind.iskeypressed(e)){
             e.preventDefault();
-            keybinds[i].call();
-            console.log(keybinds[i].id);
+            if (expire_time === 0 || pressed_index !== i || expire_time < Date.now()){
+                expire_time = Date.now() + 100;//100ms
+                pressed_index = i;
+                keybind.call();
+            }
         }
     }
 });
+
+function alreadyRegistered(e){
+    var keys = Object.keys(keybinds);
+    for (var i = 0; i < keys.length; i++) {
+        var id = keys[i];
+        if (monitoring === id){
+            continue;
+        }
+        var keybind = keybinds[id];
+        if (keybind.iskeypressed(e)){
+            return true;
+        }
+    }
+    return false;
+}
+
+function setKey(id, event){
+    keybinds[id] = keybinds[id].set(event);
+    localStorage.setItem('krhr_kb', keybindString());
+    $(editelem).removeClass('text-danger');
+    $(editelem).removeClass('text-muted');
+    $(editelem).text(keybinds[id].keydesc);
+    if (keybinds[id].keycode === -1){
+        $(editelem).addClass('font-italic');
+    } else {
+        $(editelem).removeClass('font-italic');
+    }
+    monitoring = '';
+    editelem = null;
+}
+
+function keybindString(){
+    var str = '';
+    var keys = Object.keys(keybinds);
+    for (var i = keys.length - 1; i >= 0; i--) {
+        var id = keys[i];
+        var keybind = keybinds[id];
+        str += id + ':' + keybind.toString() + ';';
+    }
+    return str;
+}
+
+function editKey(id, elem){
+    $(elem).text('ホットキーを登録...');
+    $(elem).addClass('text-muted');
+    monitoring = id;
+    editelem = elem;
+}
+
+function tenFrameAftre(){
+    $('#video').get(0).currentTime += 10 / project_fps;
+}
+
+function tenFrameBefore(){
+    $('#video').get(0).currentTime -= 10 / project_fps;
+}
+
+function oneFrameAftre(){
+    $('#video').get(0).currentTime += 1 / project_fps;
+}
+
+function oneFrameBefore(){
+    $('#video').get(0).currentTime -= 1 / project_fps;
+}
+
+function expandTL(){
+    var v = parseInt($('#tlwidth').val(), 10) + 1;
+    if (v !== tlwidth_table.length){
+        timeline_width = tlwidth_table[v];
+        $('#tlwidth').val(v);
+        $('#tlwidth_indicater').text(timeline_width+'px');
+        properTLInterval();
+        $('#timeline2').html('');
+        $('#timeline2').append(tinmelineSvgElem());
+        $('#timeline2').append(timelineSeekElem());
+        $('#timeline2').append(timelineLayerElem());
+        updateTLScroll();
+        updateSeekStick();
+        config.put('tlwidth', v+'');
+        config.save();
+    }
+}
+
+function shrinkTL(){
+    var v = parseInt($('#tlwidth').val(), 10) -1;
+    if (v !== -1){
+        timeline_width = tlwidth_table[v];
+        $('#tlwidth').val(v);
+        $('#tlwidth_indicater').text(timeline_width+'px');
+        properTLInterval();
+        $('#timeline2').html('');
+        $('#timeline2').append(tinmelineSvgElem());
+        $('#timeline2').append(timelineSeekElem());
+        $('#timeline2').append(timelineLayerElem());
+        updateTLScroll();
+        updateSeekStick();
+        config.put('tlwidth', v+'');
+        config.save();
+    }
+}
 
 var timeline_width = 10000;//pixel
 var timeline_interval = 60;//second
 var timeline_smaller_interval = 6;
 
-const interval_list = [5, 10, 20, 30, 60, 120, 240, 480, 600];
-const smaller_interval_list = [1, 1, 2, 3, 6, 12, 24, 48, 60];
+const interval_list = [5, 10, 20, 30, 60, 90, 120, 180, 240, 300, 360, 420, 480, 600];
+const smaller_interval_list = [1, 1, 2, 3, 6, 9, 12, 18, 24, 30, 36, 42, 48, 60];
 
 function properTLInterval(){
     var sec_per_px = duration / timeline_width;
     var min_sec = sec_per_px * 100;
     var max_sec = sec_per_px * 400;
+
+    if (duration < max_sec){
+        max_sec = duration;
+    }
 
     for (var i = interval_list.length - 1; i >= 0; i--) {
         if (min_sec < interval_list[i] && interval_list[i] < max_sec){

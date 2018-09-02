@@ -10,9 +10,9 @@ import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetAdapter;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.WindowEvent;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
@@ -22,7 +22,7 @@ import javax.swing.JLabel;
 
 public class App extends JFrame {
     static App instance;
-    static final int nb_thumbnail = 10;
+    //static final int nb_thumbnail = 10;
     private StatusBar statusBar;
 
     public App() {
@@ -61,18 +61,26 @@ class StatusBar extends JLabel {
     }
 }
 class VideoDropTargetAdapter extends DropTargetAdapter{
-    static List<String> paramToSendList;
+    static List<String> vparamToSendList;
+    static List<String> aparamToSendList;
+    static List<String> fparamToSendList;
     static {
-        String[] paramToSend = {
+        String[] vstreamParamToSend = {
                 "width",
                 "height",
                 "r_frame_rate",
                 "duration",
-                "nb_frames",
-                "filename",
+                "nb_frames"
+        };
+        String[] astreamParamToSend = {
+        		"sample_rate"
+        };
+        String[] fstreamParamToSend = {
                 "size"
         };
-        paramToSendList = Arrays.asList(paramToSend);
+        vparamToSendList = Arrays.asList(vstreamParamToSend);
+        aparamToSendList = Arrays.asList(astreamParamToSend);
+        fparamToSendList = Arrays.asList(fstreamParamToSend);
     }
     public void drop(DropTargetDropEvent dtde) {
         try {
@@ -88,22 +96,46 @@ class VideoDropTargetAdapter extends DropTargetAdapter{
                             //File ft = new File(getClass().getResource("/html/tn").getPath());
                             //if (mp4.createThumbnails(ft)) {
                             Desktop desktop = Desktop.getDesktop();
-                            File fp = new File(getClass().getResource("/html/index.html").getPath());
-                            File fj = new File(getClass().getResource("/html/data.js").getPath());
-                            String q = "";
-                            for (Entry<String, String> entry : mp4.metadata.entrySet()) {
-                                if (paramToSendList.contains(entry.getKey())) {
-                                    q += "&" + entry.getKey() + "=" + entry.getValue();
+                            File fp = Cmd.getExternalFile("html/index.html");
+                            File fj = Cmd.getExternalFile("html/data.js");
+                            String jsStr = "";
+                            String vq = "";
+                            for (Entry<String, String> entry : mp4.vstream_metadatas.entrySet()) {
+                                if (vparamToSendList.contains(entry.getKey())) {
+                                    vq += "&" + escape(entry.getKey()) + "=" + escape(entry.getValue());
                                 }
                             }
-                            if (q.length() < 1) {
-                                System.err.println("Not enough metadatas");
-                                return;
+                            if (vq.length() > 0) {
+                            	jsStr += "const JAVA_VIDEO_STREAM = '"+vq.substring(1)+"';";
                             }
-                            FileWriter fw = new FileWriter(fj);
-                            BufferedWriter bw = new BufferedWriter(fw);
-                            bw.write("const JAVA_QUERY = '"+escape(q.substring(1))+"';");
-                            bw.close();
+
+                            String aq = "";
+                            for (Entry<String, String> entry : mp4.astream_metadatas.entrySet()) {
+                                if (aparamToSendList.contains(entry.getKey())) {
+                                    aq += "&" + escape(entry.getKey()) + "=" + escape(entry.getValue());
+                                }
+                            }
+                            if (aq.length() > 0) {
+                            	jsStr += "const JAVA_AUDIO_STREAM = '"+aq.substring(1)+"';";
+                            }
+
+                            String fq = "";
+                            for (Entry<String, String> entry : mp4.format_metadatas.entrySet()) {
+                                if (fparamToSendList.contains(entry.getKey())) {
+                                    fq += "&" + escape(entry.getKey()) + "=" + escape(entry.getValue());
+                                }
+                            }
+                            if (fq.length() > 0) {
+                            	jsStr += "const JAVA_FORMAT = '"+fq.substring(1)+"';";
+                            }
+
+                            jsStr += "const JAVA_FILE_PATH='"+escape(f.getAbsolutePath())+"';";
+
+                            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(fj), "UTF-8");
+
+                            writer.write(jsStr);
+                            writer.close();
+
                             desktop.browse(fp.toURI());
                             App.instance.exit();
                             //} else {

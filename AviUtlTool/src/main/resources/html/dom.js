@@ -14,19 +14,24 @@ var scene_array = [];
 
 var config;
 
-var filename, nb_frames, width, height, r_frame_rate, duration, size;
+var filename, nb_frames, width, height, r_frame_rate, duration, size, sample_rate;
 
 var title;
 
 function init(){
     // load video metadata
-    var m = JAVA_QUERY.replace(/&apos;/g, "'").match(/[^?&]+=[^?&]*/g);
+    if (!JAVA_FILE_PATH) {
+        document.write("JAVAからのクエリが存在しません");
+        return;
+    }
+
+    filename = JAVA_FILE_PATH.replace(/&apos;/g, "'");
+
+    var m = JAVA_VIDEO_STREAM.replace(/&apos;/g, "'").match(/[^?&]+=[^?&]*/g);
     if (m){
         for (var i = 0; i < m.length; i++) {
             var s = m[i].split('=');
-            if (s[0] === 'filename'){
-                filename = s[1];
-            } else if (s[0] === 'nb_frames') {
+            if (s[0] === 'nb_frames') {
                 nb_frames = parseInt(s[1], 10);
             } else if (s[0] === 'width') {
                 width = parseInt(s[1], 10);
@@ -34,17 +39,35 @@ function init(){
                 height = parseInt(s[1], 10);
             } else if (s[0] === 'duration') {
                 duration = parseFloat(s[1], 10);
-            } else if (s[0] === 'size'){
-                size = parseInt(s[1], 10);
             } else if (s[0] === 'r_frame_rate') {
                 if (s[1] === '0/0'){
                     r_frame_rate = 'VFR';
                 } else {
                     var a = s[1].split('/');
                     if (a.length == 2){
-                        r_frame_rate = parseInt(a[1], 10) / parseInt(a[0], 10);
+                        r_frame_rate = (parseInt(a[0], 10) / parseInt(a[1], 10)) + ' fps';
                     }
                 }
+            }
+        }
+    }
+
+    var m2 = JAVA_AUDIO_STREAM.replace(/&apos;/g, "'").match(/[^?&]+=[^?&]*/g);
+    if (m2){
+        for (var i = 0; i < m2.length; i++) {
+            var s2 = m2[i].split('=');
+            if (s2[0] === 'sample_rate'){
+                sample_rate = s2[1];
+            }
+        }
+    }
+
+    var m3 = JAVA_FORMAT.replace(/&apos;/g, "'").match(/[^?&]+=[^?&]*/g);
+    if (m3){
+        for (var i = 0; i < m3.length; i++) {
+            var s3 = m3[i].split('=');
+            if (s3[0] === 'size'){
+                size = parseInt(s3[1], 10);
             }
         }
     }
@@ -84,6 +107,8 @@ function init(){
         $('#tlwidth').val(l6);
     }
 
+    refreshPSetting();
+
     // set video source
     if (filename) {
         $('#video').append($('<source>', {
@@ -104,6 +129,7 @@ function init(){
     var tr5 = tr('フレームレート', r_frame_rate);
     var tr6 = tr('長さ', durationString(duration));
     var tr7 = tr('ファイルサイズ', sizeString(size));
+    var tr8 = tr('音声レート', sample_rate+' hz');
     table.append(tr0);
     table.append(tr1);
     table.append(tr2);
@@ -112,6 +138,7 @@ function init(){
     table.append(tr5);
     table.append(tr6);
     table.append(tr7);
+    table.append(tr8);
     $('#infotable').append(table);
 
     if (!duration && $('#video').get(0).duration) duration = $('#video').get(0).duration;
@@ -193,6 +220,8 @@ $('#psubmitchange').on('click', function(){
     project_height = parseInt($('#pheight').val(), 10);
     project_fps = parseInt($('#pfps').val(), 10);
 
+    refreshPSetting();
+
     config.put('selsize', $('#selsize').val());
     config.put('selfps', $('#selfps').val());
     config.put('pwidth', $('#pwidth').val());
@@ -200,7 +229,11 @@ $('#psubmitchange').on('click', function(){
     config.put('pfps', $('#pfps').val());
 
     config.save();
-})
+});
+
+function refreshPSetting(){
+    $('#ps_indicater').text('(現在の設定: 解像度: ' + project_width + '*'+project_height+',  FPS: '+project_fps+')');
+}
 
 $('#video').on('click', function(e){
     videoPlayPause();
@@ -483,7 +516,7 @@ function updateTLScroll(){
     $('#timeline2').scrollLeft(w);
 }
 
-const tab_id_list = ['tab_settings', 'tab_proj_settings', 'tab_property'];
+const tab_id_list = ['tab_settings', 'tab_proj_settings', 'tab_property', 'tab_keybind'];
 
 function tab(id){
     for (var i = 0; i < tab_id_list.length; i++) {
@@ -508,6 +541,7 @@ function tab(id){
     - [done]  目盛りの値を動的に調整
     - [done]  タブで項目を表示 または ブロック化してCollapse
     - [done]  メニューバー
+    - [done]  実行可能jarとしてエクスポート
     - 編集のタイムラインバーの右クリックメニュー
     - ホットキーが押されたときにインジケータ表示
     - キーバインド設定項目
@@ -520,8 +554,6 @@ function tab(id){
     - 注意書き
     - 10秒飛ばす
     - 30秒飛ばす
-
-    しない:
-    - 音量設定
-    - 周波数設定
+    - sample rate
+    - 再生音量
 */

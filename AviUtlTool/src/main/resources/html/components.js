@@ -187,12 +187,12 @@ function exo(videoPath, cutArray, projectWidth, projectHeight, projectFps, proje
 }
 
 function sizeString(byte){
-    if (byte < 100){
+    if (byte < 500){
         return byte + " byte";
-    } else if (byte < 100000){
+    } else if (byte < 500000){
         var a = Math.round( byte * 100 / 1024 ) / 100;
         return a + " KB";
-    } else if (byte < 100000000){
+    } else if (byte < 500000000){
         var a = Math.round( (byte * 100 / 1024) / 1024 ) / 100;
         return a + " MB";
     } else {

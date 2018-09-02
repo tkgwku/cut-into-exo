@@ -3,6 +3,7 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <title>きりはりくん編集画面</title>
+    <link rel="shortcut icon" href="favicon.ico">
     <style type="text/css">
         button {cursor: pointer;}
         #body{min-height: 100%}
@@ -16,7 +17,7 @@
         .bg-7{background-color: #c4f3ff}
         .bg-8{background-color: #fff9c4}
         #timeline{cursor: pointer;height: 20px}
-        #timeline .progress-bar{cursor: pointer;height: 20px}
+        #timeline .progress-bar{cursor: pointer;height: 24px}
 
         #timeline2{overflow-x: scroll;position: relative;top:0;left:0;background-image: radial-gradient( circle farthest-corner at 10% 20%,  rgba(247,247,255,1) 0.1%, #dde 90% );}
         #tl_items, #tl_items_audio{margin: 8px 16px 0;padding: 0;white-space: nowrap;}
@@ -57,7 +58,7 @@
                     <span class="nav-link" onclick="tab('tab_property')" id="nav_tab_property">動画のプロパティ</span>
                 </li>
                 <li class="nav-item">
-                    <span class="nav-link">キー設定</span>
+                    <span class="nav-link" onclick="tab('tab_keybind')" id="nav_tab_keybind">キー設定</span>
                 </li>
             </ul>
         </div>
@@ -71,7 +72,7 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text">幅</span>
                             </div>
-                            <input type="number" class="form-control" placeholder="1280" id="pwidth" >
+                            <input type="number" class="form-control" value="1280" id="pwidth" >
                             <div class="input-group-append">
                                 <span class="input-group-text">px</span>
                             </div>
@@ -80,7 +81,7 @@
                             <div class="input-group-prepend">
                                 <span class="input-group-text">高さ</span>
                             </div>
-                            <input type="number" class="form-control" placeholder="720" id="pheight">
+                            <input type="number" class="form-control" value="720" id="pheight">
                             <div class="input-group-append">
                                 <span class="input-group-text">px</span>
                             </div>
@@ -107,7 +108,7 @@
                 <div class="form-group mb-2">
                     <div class="form-inline">
                         <div class="input-group">
-                            <input type="number" class="form-control" placeholder="30" id="pfps">
+                            <input type="number" class="form-control" value="30" id="pfps">
                             <div class="input-group-append">
                                 <span class="input-group-text">fps</span>
                             </div>
@@ -129,7 +130,7 @@
                     </div>
                 </div>
                 <div class="mt-1">
-                    <button type="button" class="btn btn-outline-primary" id="psubmitchange">変更を保存</button>
+                    <button type="button" class="btn btn-outline-primary" id="psubmitchange">変更を保存</button><span class="ml-4 text-muted" id="ps_indicater"></span>
                 </div>
             </div>
 
@@ -148,7 +149,7 @@
             </div>
 
             <div id="tab_keybind" class="silent">
-                
+                <p>under construction</p>
             </div>
         </div>
 

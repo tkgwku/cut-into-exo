@@ -26,4 +26,19 @@ This software uses code of [FFmpeg](http://ffmpeg.org) licensed under the [LGPLv
 (日本語訳) このソフトウェアは、[LGPL v2.1](http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html) のライセンスのもと公開されている[FFmpeg](http://ffmpeg.org)のコードを使っています。   
 
 FFmpegの中でも、ffprobe.exeをコマンドラインで使用しています。   
-動画ファイルのメタデータ ( 長さやコーデックなど ) を取得するのに使っています。     
+動画ファイルのメタデータ ( 長さやコーデックなど ) を取得するのに使っています。   
+
+### ソースから実行する方法
+
+できるかわからないけど
+
+1. JDKをインストール
+2. JDKのbinフォルダを環境変数に追加
+3. JREの環境変数は消しても良いんじゃないかな
+4. mavenをインストール
+5. mavenのbinフォルダを環境変数に追加
+---
+6. `AviUtlTool`フォルダでコマンドラインを起動
+7. ```mvn clean compile jar:jar```
+8. `AviutlTool`下の`target`フォルダにjarが生成
+9. ```java -jar target\jarname.jar```で起動

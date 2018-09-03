@@ -13,6 +13,5 @@ ffmpeg.exe
 ffplay.exe
 _icons
 launch4j_config.xml
-build/exe/
-build/lib/
+build
 *.bat

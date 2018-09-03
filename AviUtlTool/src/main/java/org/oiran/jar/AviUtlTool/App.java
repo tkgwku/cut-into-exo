@@ -1,8 +1,10 @@
 package org.oiran.jar.AviUtlTool;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Desktop;
-import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
@@ -13,26 +15,56 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
 
 public class App extends JFrame {
     static App instance;
-    //static final int nb_thumbnail = 10;
+    private JLabel bgImg;
     private StatusBar statusBar;
 
     public App() {
         setTitle("kiriharikun");
-        setSize(320, 180);
+        setSize(350, 230);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+		try {
+	        bgImg = new JLabel(new ImageIcon(Cmd.getExternalFile("img/dropimg.png").getAbsolutePath()));
+	        JPanel p1 = new JPanel();
+            p1.setBorder(new EmptyBorder(50, 50, 50, 50));
+            p1.setLayout(new GridBagLayout());
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.gridwidth = GridBagConstraints.REMAINDER;
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+	        p1.setBackground(Color.decode("#dddddd"));
+	        p1.add(bgImg);
+	        getContentPane().add(p1, BorderLayout.CENTER);
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+
         statusBar = new StatusBar();
+        statusBar.setBackground(Color.decode("#dddddd"));
         getContentPane().add(statusBar, BorderLayout.SOUTH);
+    }
+
+    public void setBgImg(String path) {
+    	if (bgImg != null) {
+    		try {
+    			bgImg.setIcon(new ImageIcon(Cmd.getExternalFile(path).getAbsolutePath()));
+    		} catch (URISyntaxException e) {
+    			e.printStackTrace();
+    		}
+    	}
     }
 
     public static void main(String[] args){
@@ -45,20 +77,36 @@ public class App extends JFrame {
         instance.dispatchEvent(new WindowEvent(instance, WindowEvent.WINDOW_CLOSING));
     }
 
-    public void setStatusMessage(String message) {
+    public void setStatusMessage(String message, Status status) {
         statusBar.setMessage(message);
+        statusBar.setForeground(status.getColor());
     }
 }
 class StatusBar extends JLabel {
     public StatusBar() {
         super();
-        super.setPreferredSize(new Dimension(100, 16));
         setMessage("");
+        setOpaque(true);
+        setBounds(0, 0, 200, 16);
     }
 
     public void setMessage(String message) {
         setText(message);
     }
+}
+enum Status {
+	SUCESS("#888888"),
+	ERROR("#bf1616");
+
+	private final String colorCode;
+
+	Status(String colorCode) {
+		this.colorCode = colorCode;
+	}
+
+	public Color getColor() {
+		return Color.decode(this.colorCode);
+	}
 }
 class VideoDropTargetAdapter extends DropTargetAdapter{
     static List<String> vparamToSendList;
@@ -83,6 +131,7 @@ class VideoDropTargetAdapter extends DropTargetAdapter{
         fparamToSendList = Arrays.asList(fstreamParamToSend);
     }
     public void drop(DropTargetDropEvent dtde) {
+    	App.instance.setBgImg("img/loadingimg.png");
         try {
             Transferable transfer = dtde.getTransferable();
             if (transfer.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
@@ -93,8 +142,6 @@ class VideoDropTargetAdapter extends DropTargetAdapter{
                     if (f.getName().endsWith(".mp4")) {
                         Mp4 mp4 = new Mp4(f);
                         if (mp4.loadMetadata()) {
-                            //File ft = new File(getClass().getResource("/html/tn").getPath());
-                            //if (mp4.createThumbnails(ft)) {
                             Desktop desktop = Desktop.getDesktop();
                             File fp = Cmd.getExternalFile("html/index.html");
                             File fj = Cmd.getExternalFile("html/data.js");
@@ -138,11 +185,9 @@ class VideoDropTargetAdapter extends DropTargetAdapter{
 
                             desktop.browse(fp.toURI());
                             App.instance.exit();
-                            //} else {
-                            //    System.err.println("failed to create thumbnails");
-                            //}
+                            return;
                         } else {
-                            System.err.println("failed to load video metadatas");
+                            App.instance.setStatusMessage(" failed to load video metadata", Status.ERROR);
                         }
                     }
                 }
@@ -150,6 +195,7 @@ class VideoDropTargetAdapter extends DropTargetAdapter{
         } catch (Exception e) {
             e.printStackTrace();
         }
+    	App.instance.setBgImg("img/dropimg.png");
     }
     public String escape(String s){
         return s.replaceAll("'", "&apos;").replaceAll("\\\\", "\\\\\\\\");

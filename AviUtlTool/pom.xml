@@ -4,8 +4,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.oiran.jar</groupId>
-	<artifactId>AviUtlTool</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>kiriharikun</artifactId>
+	<version>0.1</version>
 	<packaging>jar</packaging>
 
 	<name>AviUtlTool</name>

@@ -193,7 +193,7 @@ function tr(a, b){
 
 // return table header row jQuery element
 function trh(a, b){
-    var tr = $('<tr>');
+    var tr = $('<tr>', {'class':'text-muted'});
     var td1 = $('<th>', {text:a});
     var td2 = $('<th>', {text:b});
     tr.append(td1);

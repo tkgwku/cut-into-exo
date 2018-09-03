@@ -10,74 +10,76 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Mp4 {
-    File file;
-    Map<String, String> vstream_metadatas;
-    Map<String, String> astream_metadatas;
-    Map<String, String> format_metadatas;
+	File file;
+	Map<String, String> vstream_metadatas;
+	Map<String, String> astream_metadatas;
+	Map<String, String> format_metadatas;
 
-    public Mp4(File file) {
-        this.file = file;
-    }
+	public Mp4(File file) {
+		this.file = file;
+	}
 
-    boolean loadMetadata() {
-        Runtime runtime = Runtime.getRuntime();
+	boolean loadMetadata() {
+		Runtime runtime = Runtime.getRuntime();
 
-        String cmdStr = "ffprobe -loglevel quiet -show_format -show_streams \"" + file.getAbsolutePath() + "\"";
+		String cmdStr = "ffprobe -loglevel quiet -show_format -show_streams \"" + file.getAbsolutePath() + "\"";
 
-        Process p = Cmd.execFfmpeg(cmdStr);
+		Process p = Cmd.execFfmpeg(cmdStr);
+		InputStream is = p.getInputStream();
+		BufferedReader br;
+		try {
+			br = new BufferedReader(new InputStreamReader(is, "JISAutoDetect"));
+		} catch (UnsupportedEncodingException e) {
+			App.instance.setStatusMessage("ErrorFFprobeEncodingUnsupported", Status.ERROR);
+			return false;
+		}
 
-        if (p == null) {
-            return false;
-        }
+		vstream_metadatas = new HashMap<String, String>();
+		astream_metadatas = new HashMap<String, String>();
+		format_metadatas = new HashMap<String, String>();
 
-        InputStream is = p.getInputStream();
-        BufferedReader br;
-        try {
-            br = new BufferedReader(new InputStreamReader(is, "JISAutoDetect"));
-        } catch (UnsupportedEncodingException e1) {
-            e1.printStackTrace();
-            return false;
-        }
+		int state = -1;
 
-        vstream_metadatas = new HashMap<String, String>();
-        astream_metadatas = new HashMap<String, String>();
-        format_metadatas = new HashMap<String, String>();
+		while (true) {
+			String line;
+			try {
+				line = br.readLine();
+			} catch (IOException e) {
+				App.instance.setStatusMessage("ErrorFFprobeEncodingUnsupported", Status.ERROR);
+				return false;
+			}
+			if (line == null) {
+				break;
+			} else {
+				if (line.matches("^[^=]+=[^=]+$")) {
+					String[] s = line.split("=");
+					switch (state) {
+					case 0:
+						vstream_metadatas.put(s[0], s[1]);
+						break;
+					case 1:
+						astream_metadatas.put(s[0], s[1]);
+						break;
+					case 2:
+						format_metadatas.put(s[0], s[1]);
+						break;
+					}
+				} else if (line.matches("^\\[\\w+\\]$")) {
+					state++;
+				}
+			}
+		}
 
-        int state = -1;
+		try {
+			br.close();
+		} catch (IOException e) {
+		}
 
-        try {
-            while (true) {
-                String line = br.readLine();
-                if (line == null) {
-                    break;
-                } else {
-                    if (line.matches("^[^=]+=[^=]+$")) {
-                        String[] s = line.split("=");
-                        switch (state) {
-                        case 0:
-                            vstream_metadatas.put(s[0], s[1]);
-                            break;
-                        case 1:
-                            astream_metadatas.put(s[0], s[1]);
-                            break;
-                        case 2:
-                            format_metadatas.put(s[0], s[1]);
-                            break;
-                        }
-                    } else if (line.matches("^\\[\\w+\\]$")) {
-                        state++;
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
+		if (vstream_metadatas.isEmpty() || astream_metadatas.isEmpty() || format_metadatas.isEmpty()) {
+			App.instance.setStatusMessage("ErrorNoMetadata", Status.ERROR);
+			return false;
+		}
 
-        if (vstream_metadatas.isEmpty() || astream_metadatas.isEmpty() || format_metadatas.isEmpty()) {
-            return false;
-        }
-
-        return true;
-    }
+		return true;
+	}
 }

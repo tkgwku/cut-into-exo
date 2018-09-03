@@ -9,57 +9,43 @@ import java.nio.file.Paths;
 import java.security.CodeSource;
 
 public class Cmd {
-    public static Process execFfmpeg(String cmdLine) {
-        Runtime runtime = Runtime.getRuntime();
+	public static Process execFfmpeg(String cmdLine) {
+		Runtime runtime = Runtime.getRuntime();
 
-        String[] command = {"cmd", "/c", cmdLine};
+		String[] command = {"cmd", "/c", cmdLine};
 
-        File ffmpegBin = null;
+		File ffmpegBin = getExternalFile("ffmpeg/bin");
 
-        try {
-            ffmpegBin = getExternalFile("ffmpeg/bin");
-        } catch (URISyntaxException e1) {
-            e1.printStackTrace();
-        }
+		Process p;
+		try {
+			p = runtime.exec(command, null, ffmpegBin);
+		} catch (IOException e) {
+			App.instance.setStatusMessage("ErrorExecuteCmd", Status.ERROR);
+			return null;
+		}
 
-        if (ffmpegBin == null || !ffmpegBin.exists()) {
-            // not found ffmpeg
-            return null;
-        }
+		return p;
+	}
 
-        Process p;
-        try {
-            p = runtime.exec(command, null, ffmpegBin);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+	public static URI getJarURI(Class<?> clazz) {
+		CodeSource cs = clazz.getProtectionDomain().getCodeSource();
+		try {
+			return cs.getLocation().toURI();
+		} catch (URISyntaxException e) {
+			App.instance.setStatusMessage("ErrorJarPathNotDetected", Status.ERROR);
+			return null;
+		}
+	}
 
-        return p;
-    }
+	public static File getExternalFile(String pathStr) {
+		URI jarURI = getJarURI(App.class);
 
-    public static URI getJarURI(Class<?> clazz) {
-        CodeSource cs = clazz.getProtectionDomain().getCodeSource();
-        try {
-            return cs.getLocation().toURI();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
+		if (jarURI == null) return null;
 
-    public static File getExternalFile(String pathStr) throws URISyntaxException {
-        URI jarURI = getJarURI(App.class);
+		Path jarPath = Paths.get(jarURI);
 
-        if (jarURI == null) {
-            //URISyntaxException
-            return null;
-        }
+		String extPath = ("/"+pathStr).replaceAll("/", File.separator.replace("\\", "\\\\"));
 
-        Path jarPath = Paths.get(jarURI);
-
-        String extPath = ("/"+pathStr).replaceAll("/", File.separator.replace("\\", "\\\\"));
-
-        return new File(jarPath.getParent() + extPath);
-    }
+		return new File(jarPath.getParent() + extPath);
+	}
 }

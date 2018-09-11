@@ -178,6 +178,8 @@ function init(){
         $('#timeline2').append(timelineSeekElem());
         $('#timeline2').append(timelineLayerElem());
     }
+
+    updateSeekbar();
 }
 //init end
 
@@ -260,7 +262,7 @@ function refreshPSetting(){
     $('#ps_indicater').text('(現在の設定: 解像度: ' + project_width + '*'+project_height+',  FPS: '+project_fps+')');
 }
 
-$('#video').on('click', function(e){
+$('#video-wrapper').on('click', function(e){
     videoPlayPause();
 });
 
@@ -651,6 +653,7 @@ function appendTimelineItems(elem, activeClass, muteClass, titleFormat){
 $('#video').on('timeupdate', function(){
     updateTLScroll();
     updateSeekStick();
+    updateSeekbar();
 });
 //なぜか重い
 
@@ -661,6 +664,11 @@ $('#timeline2').mousewheel(function(event, mov) {
 
 function updateSeekStick(){
     $('#tl_stick').css('left', Math.round(15 + ($('#video').get(0).currentTime * timeline_width / duration)));
+}
+
+function updateSeekbar(){
+    var i = $('#video').get(0).currentTime * 100 / duration;
+    $('#vc-seekbar').css('width',i+'%');
 }
 
 function updateTLScroll(){
@@ -682,6 +690,13 @@ function tab(id){
         }
     }
 }
+
+$('#vc-seekbar-wrapper').on('click', function(e) {
+    var clientRect = this.getBoundingClientRect();
+    var x = e.pageX - clientRect.left - window.pageXOffset;
+    var i = Math.min(1, Math.max(0, x / $('#vc-seekbar-wrapper').outerWidth()));
+    $('#video').get(0).currentTime = duration * i;
+});
 
  /*
     TODO:

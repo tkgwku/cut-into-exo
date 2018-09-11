@@ -29,12 +29,26 @@
         #keybindtable td{padding: .7em 1em}
         #keybindtable th{padding: .7em 1em;font-weight: normal;}
         #infotable th{font-weight: normal;border-top: none;}
+        #vc-seekbar-wrapper{height: 10px;border-radius: 0 0 4px 4px;cursor: pointer;z-index: 10}
+        #vc-seekbar-wrapper:hover{box-shadow: 0 0 0 0.2em rgba(0, 100, 30, 0.2);}
+        #video-wrapper{cursor: pointer;}
+        #vc-volume{cursor: pointer;}
     </style>
 </head>
 <body onload="init();">
     <div class="container">
         <h3 style="margin: 1em 0 1em 0;">動画をカット編集</h3>
-        <video id="video" controls=""></video>
+        <div>
+            <div id="video-wrapper">
+                <video id="video"></video>
+            </div>
+            <div class="progress" id="vc-seekbar-wrapper">
+                <div class="progress-bar" id="vc-seekbar" style="width: 100%"></div>
+            </div>
+            <div>
+                <!--音量 再生・停止 再生時間・再生フレーム-->
+            </div>
+        </div>
 
         <div id="timeline2" style="height: 160px;margin-top: 1em">
         </div>
@@ -131,7 +145,7 @@
                 <div class="form-group">
                     <div>
                         <label style="margin-right: 1em">タイムラインの拡大率</label>
-                        <input type="range" class="custom-range" id="tlwidth" style="width: 150px;" min="0" max="16" >
+                        <input type="range" class="custom-range" id="tlwidth" style="width: 150px;" min="0" max="16">
                         <span id="tlwidth_indicater" class="text-muted"></span>
                     </div>
                 </div>

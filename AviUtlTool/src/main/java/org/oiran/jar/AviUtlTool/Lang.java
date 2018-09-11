@@ -16,6 +16,10 @@ public class Lang {
 	public Lang(File f){
 		langMap = new HashMap<String, String>();
 
+		if (f == null || !f.exists()) {
+			return;//language file not found
+		}
+
 		FileInputStream fis;
 		try {
 			fis = new FileInputStream(f);
@@ -27,7 +31,7 @@ public class Lang {
 		try {
 			br = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
-			App.instance.setStatusMessage("ErrorLangEncodingUnsupported", Status.ERROR);
+			App.message("ErrorLangEncodingUnsupported", Status.ERROR);
 			try {
 				fis.close();
 			} catch (IOException e1) {
@@ -40,7 +44,7 @@ public class Lang {
 			try {
 				line = br.readLine();
 			} catch (IOException e) {
-				App.instance.setStatusMessage("ErrorReadLang", Status.ERROR);
+				App.message("ErrorReadLang", Status.ERROR);
 				try {
 					br.close();
 				} catch (IOException e1) {

@@ -24,13 +24,15 @@ public class Mp4 {
 
 		String cmdStr = "ffprobe -loglevel quiet -show_format -show_streams \"" + file.getAbsolutePath() + "\"";
 
-		Process p = Cmd.execFfmpeg(cmdStr);
+		Process p = Cmd.execFFmpeg(cmdStr);
+		if (p == null) return false;
+
 		InputStream is = p.getInputStream();
 		BufferedReader br;
 		try {
 			br = new BufferedReader(new InputStreamReader(is, "JISAutoDetect"));
 		} catch (UnsupportedEncodingException e) {
-			App.instance.setStatusMessage("ErrorFFprobeEncodingUnsupported", Status.ERROR);
+			App.message("ErrorFFprobeEncodingUnsupported", Status.ERROR);
 			return false;
 		}
 
@@ -45,7 +47,7 @@ public class Mp4 {
 			try {
 				line = br.readLine();
 			} catch (IOException e) {
-				App.instance.setStatusMessage("ErrorFFprobeEncodingUnsupported", Status.ERROR);
+				App.message("ErrorFFprobeEncodingUnsupported", Status.ERROR);
 				return false;
 			}
 			if (line == null) {
@@ -76,7 +78,7 @@ public class Mp4 {
 		}
 
 		if (vstream_metadatas.isEmpty() || astream_metadatas.isEmpty() || format_metadatas.isEmpty()) {
-			App.instance.setStatusMessage("ErrorNoMetadata", Status.ERROR);
+			App.message("ErrorNoMetadata", Status.ERROR);
 			return false;
 		}
 

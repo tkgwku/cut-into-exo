@@ -3,12 +3,19 @@
 AviUtlのシークバーはやはり重い。   
 なのでカット編集だけはブラウザ上とか、動画が軽いところでやろう、という発想です。   
 
+### 仕組み解説
+
 Javaで動画ファイルをドラッグアンドドロップ (DnD) できるウィンドウを作成してます。   
 ffprobe様を使用させていただき動画情報を取得してJavascriptに渡してます。   
 Javascriptはローカルで動いています。安全です。localhostではありません。   
 編集画面は規定のブラウザで開きますがChromiumを想定しています。   
 ブラウザ上でHTML5のvideo要素を使用しながら、タイムラインを使って編集します。   
 編集内容はEXO形式で保存。AviUtlの拡張編集タイムラインにDnDして使います。
+
+### ダウンロード
+
+[リリースタブから](https://github.com/tkgwku/cut-into-exo/releases)   
+まだベータ版なのでバグがあるかもしれません。  
 
 ### ショートカット
 
@@ -42,3 +49,8 @@ FFmpegの中でも、ffprobe.exeをコマンドラインで使用しています
 7. ```mvn clean compile jar:jar```
 8. `AviutlTool`下の`target`フォルダにjarが生成
 9. ```java -jar target\jarname.jar```で起動
+
+### 既知のバグ
+
+ビデオを細くカットしすぎると、div要素にpaddingを入れているためdiv要素が幅を持ってしまい、タイムラインがズレます。   
+タイムラインを拡大すれば治ります。

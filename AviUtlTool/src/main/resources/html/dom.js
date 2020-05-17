@@ -139,7 +139,7 @@ function init(){
         $('#video').append($('<source>', {
             'src': filename
         }));
-        var m4 = filename.match(/([^\\.]+.[^\\.]+)$/);
+        var m4 = filename.match(/([^\\]+.[^\\.]+)$/);
         if (m4 && m4.length >= 2){
             title = m4[1];
         }
